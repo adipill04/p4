@@ -97,10 +97,16 @@ sys_uptime(void)
 uint
 wmap(void)
 {
+  //decl args
   uint addr;
-  int length;
-  int flags;
-  int fd;	
+  int length; 
+  int flags; 
+  int fd;
+
+  argint(0, &addr);
+  argint(1, &length);
+  argint(2, &flags);
+  argint(3, &fd);
 
   for(int i = 0; i < (int) ceil((double)length / PAGE_SIZE); i++) {
   	char* mem = kalloc();
