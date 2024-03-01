@@ -95,33 +95,27 @@ sys_uptime(void)
 uint
 wmap(void)
 {
-  uint addr;
-  int length;
-  int flags;
-  int fd;	
+  
 }
 
 int 
 wunmap(void)
 {
-  uint addr;	
+	
 }
 
 uint
 wremap(void)
 {
-  uint oldaddr;
-  int oldsize;
-  int newsize;
-  int flags;
+	
 }
 
 int getpgdirinfo(void)
 {
-  struct pgdirinfo *pdinfo;
+	
 }
 
 int getwmapinfo(void)
 {
-  struct wmapinfo *wminfo	
+	
 }
