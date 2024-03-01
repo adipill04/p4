@@ -7,6 +7,7 @@
 #include "mmu.h"
 #include "proc.h"
 #include "types.h"
+#include "wmap.h"
 
 int
 sys_fork(void)
@@ -94,7 +95,7 @@ sys_uptime(void)
 uint
 wmap(uint addr, int length, int flags, int fd)
 {
-	
+  
 }
 
 int 
