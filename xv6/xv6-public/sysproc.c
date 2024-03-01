@@ -9,6 +9,8 @@
 #include "types.h"
 #include "wmap.h"
 
+#define PAGE_SIZE 4096
+
 int
 sys_fork(void)
 {
@@ -95,7 +97,15 @@ sys_uptime(void)
 uint
 wmap(void)
 {
-  
+  uint addr;
+  int length;
+  int flags;
+  int fd;	
+
+  for(int i = 0; i < (int) ceil((double)length / PAGE_SIZE); i++) {
+  	char* mem = kalloc();
+  	mappages(myproc()->pgdir, addr, PAGE_SIZE, V2P(mem), PTE_W | PTE_U);
+  }  
 }
 
 int 
