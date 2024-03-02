@@ -117,24 +117,6 @@ wmap(void)
   	length += 4096 - (length % 4096);
   }
 
-  void insertInOrder(int arr[], int num) {
-      int i;
-      for (i = 0; i < 34; i++) {
-          // Find the position where number should be inserted
-          if (arr[i] == -1 || arr[i] > num) {
-              break;
-          }
-      }
-  
-      // Shift elements to the right to make space
-      for (int j = 34 - 1; j > i; j--) {
-          arr[j] = arr[j - 1];
-      }
-  
-      // Insert the number
-      arr[i] = num;
-  }
-
   struct lazy* temp = myproc()->head;
 
   //myproc() use to retrieve proc struct
