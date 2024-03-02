@@ -108,13 +108,70 @@ wmap(void)
   argint(2, &flags);
   argint(3, &fd);
 
+  void insertInOrder(int arr[], int num) {
+      int i;
+      for (i = 0; i < 34; i++) {
+          // Find the position where number should be inserted
+          if (arr[i] == -1 || arr[i] > num) {
+              break;
+          }
+      }
+  
+      // Shift elements to the right to make space
+      for (int j = 34 - 1; j > i; j--) {
+          arr[j] = arr[j - 1];
+      }
+  
+      // Insert the number
+      arr[i] = num;
+  }
+  
+  
+
   //myproc() use to retrieve proc struct
-  if(flags & MAP_ANONYMOUS){
-
-  }
-  if(flags & MAP_FIXED){
-
-  }
+	  if(flags & MAP_FIXED){
+	  	int i = 0;
+	  	while(myproc()->lazyAllocs[i] != 0 && i != 16) {
+	  	  uint end1 = addr + length;
+	  	  uint end2 = myproc()->lazyAllocs[i].addr + myproc()->lazyAllocs[i].length;
+	      if(addr <= end2 && end1 >= myproc()->lazyAllocs[i].add) {
+	  	    return -1;
+	  	  }
+	  	  i++;
+	  	}
+	  	if(i == 16) {
+	  		return -1;
+	  	}
+	  	myproc()->lazyAllocs[i].addr = addr;
+	  	myproc()->lazyAllocs[i].length = length;
+	  	myproc()->lazyAllocs[i].fd = (flags & MAP_ANONYMOUS) ? -1: fd;
+	  	myproc()->lazyAllocs[i].shared = (flags & MAP_SHARED) ? 1 : 0;
+	  }
+	  else{
+	  	int address[34];
+	  	for (int i = 0; i < 34; i++) {
+	  	  address[i] = -1;
+	  	}
+	  	address[0] = 0;
+	  	address[1] = 536870912;
+	  	
+	  	
+	  	int i = 0;
+	  	while(myproc()->lazyAllocs[i] != 0 && i != 16) {
+	  	  uint end = myproc()->lazyAllocs[i].addr + length;
+		  insertInOrder(address, myproc()->lazyAllocs[i].addr);
+		  insertInOrder(address, end);
+	  	  i++;
+	  	}
+	  	for(int j = 0; j < 17; j++) {
+	  		if(address[j * 2 + 1] - address[j * 2] >= length) {
+	  			myproc()->lazyAllocs[i].addr = address[j * 2] + 1;
+	  			myproc()->lazyAllocs[i].length = length;
+	  			myproc()->lazyAllocs[i].fd = (flags & MAP_ANONYMOUS) ? -1 : fd;
+	  			myproc()->lazyAllocs[i].shared = (flags & MAP_SHARED) ? 1 : 0;
+	  		}
+	  	}
+	  }
 
   // for(int i = 0; i < (int) ceil((double)length / PAGE_SIZE); i++) {
   // 	char* mem = kalloc();
@@ -125,7 +182,7 @@ wmap(void)
 int 
 wunmap(void)
 {
-	
+  
 }
 
 uint
