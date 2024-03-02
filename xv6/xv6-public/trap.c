@@ -8,6 +8,8 @@
 #include "traps.h"
 #include "spinlock.h"
 
+#include "proc.c" //added, allowed to keep?
+
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
@@ -77,6 +79,35 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
+  
+  case T_PGFLT:
+    //fault address
+    uint faultAddress = rcr2();
+    
+    //finding fault address in our lazy allocations
+    int bit = 0;
+    for(int i = 0; i < 16; i++){
+      //if found & anonymous then kalloc()
+      if(myproc() -> lazyAllocs[i].used == 1 && myproc() -> lazyAllocs[i].addr == faultAddress){
+        bit = 1;
+        if(myproc() -> lazyAllocs[i].fd == -1){
+          char *mem = kalloc();
+          mappages(myproc() -> pgdir, 0x60000000, 4096, V2P(mem), PTE_W | PTE_U);
+          break;
+        }
+      }
+    }
+
+    //if not found kill process
+    if(bit == 0){
+      cprintf("Segmentation Fault\n");
+      kill(myproc() -> pid);
+    }
+
+    //if found but fd valid, alloc w/ file backed mapping
+    
+
+
 
   //PAGEBREAK: 13
   default:

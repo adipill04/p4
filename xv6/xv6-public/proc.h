@@ -56,7 +56,6 @@ struct proc {
     uint addr;                 // virtual address
     int length;
     int shared;                // shared bit (0 - not shared, 1 - shared)
-
   };
 };
 

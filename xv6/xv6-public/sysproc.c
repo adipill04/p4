@@ -126,8 +126,6 @@ wmap(void)
       arr[i] = num;
   }
   
-  
-
   //myproc() use to retrieve proc struct
 	  if(flags & MAP_FIXED){
 	  	int i = 0;
