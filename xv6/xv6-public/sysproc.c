@@ -10,6 +10,7 @@
 #include "wmap.h"
 
 #define PAGE_SIZE 4096
+#define KERNBASE 536870912
 
 int
 sys_fork(void)
@@ -108,6 +109,14 @@ wmap(void)
   argint(2, &flags);
   argint(3, &fd);
 
+  if(length <= 0) {
+  	return -1;
+  }
+
+  if(length % 4096 != 0) {
+  	length += 4096 - (length % 4096);
+  }
+
   void insertInOrder(int arr[], int num) {
       int i;
       for (i = 0; i < 34; i++) {
@@ -125,67 +134,98 @@ wmap(void)
       // Insert the number
       arr[i] = num;
   }
-  
-  
+
+  struct lazy* temp = myproc()->head;
 
   //myproc() use to retrieve proc struct
 	  if(flags & MAP_FIXED){
-	  	int i = 0;
-	  	while(myproc()->lazyAllocs[i].used == 1 && i != 16) {
-	  	  uint end1 = addr + length;
-	  	  uint end2 = myproc()->lazyAllocs[i].addr + myproc()->lazyAllocs[i].length;
-	      if(addr <= end2 && end1 >= myproc()->lazyAllocs[i].add) {
-	  	    return -1;
-	  	  }
-	  	  i++;
-	  	}
-	  	if(i == 16) {
-	  		return -1;
-	  	}
-	  	myproc()->lazyAllocs[i].addr = addr;
-	  	myproc()->lazyAllocs[i].length = length;
-	  	myproc()->lazyAllocs[i].fd = (flags & MAP_ANONYMOUS) ? -1: fd;
-	  	myproc()->lazyAllocs[i].shared = (flags & MAP_SHARED) ? 1 : 0;
-	  	myproc()->lazyAllocs[i].used = 1;
-	  }
-	  else{
-	  	int p;
-	  	for(p = 0; p < 16; p++) {
-	  		if(myproc()->lazyAllocs[p].used == 0) {
-	  			break;
-	  		}
-	  	}
-
-	  	int address[p*2];
-	  	for (int j = 0; j < p*2; j++) {
-	      address[j] = -1;
+	    if(addr + length >= KERNBASE) {
+	    	return -1;
 	    }
-	  	address[0] = 0;
-	  	address[1] = 536870912;
-	  	
-	  	int i = 0;
-	  	while(myproc()->lazyAllocs[i].used == 1 && i != 16) {
-	  	  uint end = myproc()->lazyAllocs[i].addr + length;
-		  insertInOrder(address, myproc()->lazyAllocs[i].addr);
-		  insertInOrder(address, end);
-	  	  i++;
-	  	}
-
-	  	
-	  	for(int k = 0; k < 17; k++) {
-	  		if(address[k * 2 + 1] - address[k * 2] >= length) {
-	  			myproc()->lazyAllocs[i].addr = address[k * 2] + 1;
-	  			myproc()->lazyAllocs[i].length = length;
-	  			myproc()->lazyAllocs[i].fd = (flags & MAP_ANONYMOUS) ? -1 : fd;
-	  			myproc()->lazyAllocs[i].shared = (flags & MAP_SHARED) ? 1 : 0;
-	  			myproc()->lazyAllocs[i].used = 1;
-	  			break;
-	  		}
-	  		if(k == 16) {
-	  			return -1;
-	  		}
-	  	}
-	  }
+	    if(temp->length == 0) {
+		  temp->used = 1;
+		  temp->addr = addr;
+		  temp->length = length;
+		  temp->fd = (flags & MAP_ANONYMOUS) ? -1: fd;
+		  temp->shared = (flags & MAP_SHARED) ? 1: 0;
+		  return 0;
+		}
+		while(temp) {
+		  if(addr < temp->addr && (addr + length) < temp->addr) {
+		    struct lazy* new;
+		    memset(new, 0, sizeof(struct lazy));
+		    new->addr = addr;
+		    new->length = length;
+		    new->fd = (flags & MAP_ANONYMOUS) ? -1: fd;
+		    new->shared = (flags & MAP_SHARED) ? 1: 0;
+		    new->used = 1;
+		    new->next = temp;
+		    if(temp->prev){
+		      new->prev = temp->prev;
+		      temp->prev->next = new;
+		      temp->prev = new;
+		    } else {
+		      temp->prev = new;
+		    }
+		    return 0;
+		  } else if(addr < temp->addr && (addr + length) >= temp->addr) {
+		  	return -1;
+		  }
+		  temp = temp->next;
+		}
+  } else{
+    if(temp->length == 0) {
+    		  temp->used = 1;
+    		  temp->addr = 0;
+    		  temp->length = length;
+    		  temp->fd = (flags & MAP_ANONYMOUS) ? -1: fd;
+    		  temp->shared = (flags & MAP_SHARED) ? 1: 0;
+    		  return 0;
+    		}
+    int start = 0;
+    while(temp) {
+        int end = temp->addr;
+    	if(end - start > length) {
+    		struct lazy* new;
+    		memset(new, 0, sizeof(struct lazy));
+    		new->addr = start;
+    		new->length = length;
+    		new->fd = (flags & MAP_ANONYMOUS) ? -1: fd;
+    		new->shared = (flags & MAP_SHARED) ? 1 : 0;
+    		new->used = 1;
+    		new->next = temp;
+    		if(temp->prev){
+    			new->prev = temp->prev;
+    			temp->prev->next = new;
+    			temp->prev = new;
+    		} else {
+    			temp->prev = new;
+    		}
+    		return 0;
+    	}
+    	start = temp->addr + temp->length;
+    	temp = temp->next;
+    }
+    if(KERNBASE - start > length) {
+    	struct lazy* new;
+    	    		memset(new, 0, sizeof(struct lazy));
+    	    		new->addr = start;
+    	    		new->length = length;
+    	    		new->fd = (flags & MAP_ANONYMOUS) ? -1: fd;
+    	    		new->shared = (flags & MAP_SHARED) ? 1 : 0;
+    	    		new->used = 1;
+    	    		new->next = temp;
+    	    		if(temp->prev){
+    	    			new->prev = temp->prev;
+    	    			temp->prev->next = new;
+    	    			temp->prev = new;
+    	    		} else {
+    	    			temp->prev = new;
+    	    		}
+    	    		return 0;
+    }
+    return -1;
+  }
 
   // for(int i = 0; i < (int) ceil((double)length / PAGE_SIZE); i++) {
   // 	char* mem = kalloc();

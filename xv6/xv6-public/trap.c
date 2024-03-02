@@ -1,4 +1,5 @@
 #include "types.h"
+#include "types.h"
 #include "defs.h"
 #include "param.h"
 #include "memlayout.h"
@@ -7,6 +8,8 @@
 #include "x86.h"
 #include "traps.h"
 #include "spinlock.h"
+#include "vm.h"
+#include "user.h"
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -77,6 +80,33 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
+  case T_PGFLT:
+    struct lazy* temp = myproc()->head;
+    uint fault = rcr2();
+    while(temp) {
+      uint end = temp->addr + temp->length;
+      if(fault >= temp->addr && fault <= end) {
+      	int pageStart = (fault / 4096) * 4096;
+      	if(temp->fd == -1) {
+      		char *mem = kalloc();
+      		mappages(myproc()->pgdir, pageStart, 4096, V2P(mem), PTE_W | PTE_U);
+      	} else {
+      		int fd = temp->fd;
+      		char *mem = kalloc();
+      		int bytes = 0;
+      		while(bytes < pageStart) {
+      		  read(fd, mem, 4096);
+      		  bytes += 4096;
+      		}
+      		mappages(myproc()->pgdir, pageStart, 4096, V2P(mem), PTE_W | PTE_U);
+      	}
+      	break;
+      }
+      temp = temp->next;
+    }
+    cprintf("Segmentation Fault\n");
+    exit();
+    
 
   //PAGEBREAK: 13
   default:

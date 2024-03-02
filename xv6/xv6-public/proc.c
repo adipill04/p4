@@ -111,14 +111,12 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
-  for(int i = 0; i < 16; i++){
-  	p->lazyAllocs[i].fd = 0;
-  	p->lazyAllocs[i].addr = 0;
-  	p->lazyAllocs[i].length = 0;
-  	p->lazyAllocs[i].shared = 0;
-  	p->lazyAllocs[i].used = 0;
-  }
 
+  //Set up mmap
+  struct lazy* head;
+  memset(head, 0, sizeof(struct lazy));
+  p->head = head;
+  
   return p;
 }
 
