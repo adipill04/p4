@@ -8,6 +8,7 @@
 #include "proc.h"
 #include "types.h"
 #include "wmap.h"
+#include "vm.h"
 
 #define PAGE_SIZE 4096
 #define KERNBASE 536870912
@@ -132,9 +133,10 @@ wmap(void)
 		  temp->shared = (flags & MAP_SHARED) ? 1: 0;
 		  return 0;
 		}
+		uint last;
 		while(temp) {
 		  if(addr < temp->addr && (addr + length) < temp->addr) {
-		    struct lazy* new;
+		    struct lazy* new = (struct lazy*)kalloc();
 		    memset(new, 0, sizeof(struct lazy));
 		    new->addr = addr;
 		    new->length = length;
@@ -153,7 +155,26 @@ wmap(void)
 		  } else if(addr < temp->addr && (addr + length) >= temp->addr) {
 		  	return -1;
 		  }
+		  last = temp->addr + temp->length;
 		  temp = temp->next;
+		}
+		if(addr < KERNBASE && last < addr) {
+			struct lazy* new = (struct lazy*)kalloc();
+					    memset(new, 0, sizeof(struct lazy));
+					    new->addr = addr;
+					    new->length = length;
+					    new->fd = (flags & MAP_ANONYMOUS) ? -1: fd;
+					    new->shared = (flags & MAP_SHARED) ? 1: 0;
+					    new->used = 1;
+					    new->next = temp;
+					    if(temp->prev){
+					      new->prev = temp->prev;
+					      temp->prev->next = new;
+					      temp->prev = new;
+					    } else {
+					      temp->prev = new;
+					    }
+					    return 0;
 		}
   } else{
     if(temp->length == 0) {
@@ -168,7 +189,7 @@ wmap(void)
     while(temp) {
         int end = temp->addr;
     	if(end - start > length) {
-    		struct lazy* new;
+    		struct lazy* new = (struct lazy*)kalloc();
     		memset(new, 0, sizeof(struct lazy));
     		new->addr = start;
     		new->length = length;
@@ -189,7 +210,7 @@ wmap(void)
     	temp = temp->next;
     }
     if(KERNBASE - start > length) {
-    	struct lazy* new;
+    	struct lazy* new = (struct lazy*)kalloc();
     	    		memset(new, 0, sizeof(struct lazy));
     	    		new->addr = start;
     	    		new->length = length;
@@ -206,19 +227,51 @@ wmap(void)
     	    		}
     	    		return 0;
     }
-    return -1;
   }
-
-  // for(int i = 0; i < (int) ceil((double)length / PAGE_SIZE); i++) {
-  // 	char* mem = kalloc();
-  // 	mappages(myproc()->pgdir, addr, PAGE_SIZE, V2P(mem), PTE_W | PTE_U);
-  // }  
+  return -1;
 }
 
 int 
 wunmap(void)
 {
-  
+  uint addr;
+  argint(0, &addr);
+
+  struct lazy* temp = myproc()->head;
+  while(temp) {
+  	if(temp->addr == addr) {
+  	   if(temp->prev && temp->next) {
+  	  	  temp->prev->next = temp->next;
+  	  	  temp->next->prev = temp->prev;
+  	  	} else if(temp->prev){
+  	  		temp->prev->next = temp->next;
+  	  	} else if(temp->next){
+  	  		temp->next->prev = temp->prev;
+  	  	} else {
+  	  		struct lazy* new = (struct lazy*)kalloc();
+  	  		memset(new, 0, sizeof(struct lazy));
+  	  		myproc()->head = new;
+  	  	}
+  	  	pte_t *pte;
+	  	if(temp->fd == -1) {
+	  	  for(int i = 0; i < (temp->length / 4096); i++) {
+		  	  pte = walkpgdir(myproc()->pgdir, addr + (i * 4096), 0);
+		  	  kfree(P2V(PTE_ADDR(*pte)));
+		  }
+		  pte = 0;
+	  	} else {
+	  	  for(int i = 0; i < (temp->length / 4096); i++) {
+	  	  	pte = walkpgdir(myproc()->pgdir, addr + (i * 4096), 0);
+	  	  	if(pte != 0) {
+	  	  		//write(fd);
+	  	  	}
+	  	  	kfree(P2V(PTE_ADDR(*pte)));
+	  	  }
+	  	  	
+  	  }
+  	}
+  	temp = temp->next;
+  }
 }
 
 uint

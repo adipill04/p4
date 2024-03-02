@@ -113,7 +113,7 @@ found:
   p->context->eip = (uint)forkret;
 
   //Set up mmap
-  struct lazy* head;
+  struct lazy* head = (struct lazy*)kalloc();
   memset(head, 0, sizeof(struct lazy));
   p->head = head;
   
