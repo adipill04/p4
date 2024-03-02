@@ -108,10 +108,18 @@ wmap(void)
   argint(2, &flags);
   argint(3, &fd);
 
-  for(int i = 0; i < (int) ceil((double)length / PAGE_SIZE); i++) {
-  	char* mem = kalloc();
-  	mappages(myproc()->pgdir, addr, PAGE_SIZE, V2P(mem), PTE_W | PTE_U);
-  }  
+  //myproc() use to retrieve proc struct
+  if(flags & MAP_ANONYMOUS){
+
+  }
+  if(flags & MAP_FIXED){
+
+  }
+
+  // for(int i = 0; i < (int) ceil((double)length / PAGE_SIZE); i++) {
+  // 	char* mem = kalloc();
+  // 	mappages(myproc()->pgdir, addr, PAGE_SIZE, V2P(mem), PTE_W | PTE_U);
+  // }  
 }
 
 int 

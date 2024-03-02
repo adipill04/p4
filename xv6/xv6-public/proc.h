@@ -49,6 +49,15 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  
+  struct lazy lazyAllocs[16];  // All lazy allocations of a process (16 max)
+  struct lazy {                // Lazy allocation struct
+    int fd;                    // file descriptor
+    uint addr;                 // virtual address
+    int length;
+    int shared;                // shared bit (0 - not shared, 1 - shared)
+
+  };
 };
 
 // Process memory is laid out contiguously, low addresses first:
