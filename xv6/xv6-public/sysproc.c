@@ -129,7 +129,7 @@ wmap(void)
   //myproc() use to retrieve proc struct
 	  if(flags & MAP_FIXED){
 	  	int i = 0;
-	  	while(myproc()->lazyAllocs[i] != 0 && i != 16) {
+	  	while(myproc()->lazyAllocs[i].used == 1 && i != 16) {
 	  	  uint end1 = addr + length;
 	  	  uint end2 = myproc()->lazyAllocs[i].addr + myproc()->lazyAllocs[i].length;
 	      if(addr <= end2 && end1 >= myproc()->lazyAllocs[i].add) {
@@ -144,29 +144,43 @@ wmap(void)
 	  	myproc()->lazyAllocs[i].length = length;
 	  	myproc()->lazyAllocs[i].fd = (flags & MAP_ANONYMOUS) ? -1: fd;
 	  	myproc()->lazyAllocs[i].shared = (flags & MAP_SHARED) ? 1 : 0;
+	  	myproc()->lazyAllocs[i].used = 1;
 	  }
 	  else{
-	  	int address[34];
-	  	for (int i = 0; i < 34; i++) {
-	  	  address[i] = -1;
+	  	int p;
+	  	for(p = 0; p < 16; p++) {
+	  		if(myproc()->lazyAllocs[p].used == 0) {
+	  			break;
+	  		}
 	  	}
+
+	  	int address[p*2];
+	  	for (int j = 0; j < p*2; j++) {
+	      address[j] = -1;
+	    }
 	  	address[0] = 0;
 	  	address[1] = 536870912;
 	  	
-	  	
 	  	int i = 0;
-	  	while(myproc()->lazyAllocs[i] != 0 && i != 16) {
+	  	while(myproc()->lazyAllocs[i].used == 1 && i != 16) {
 	  	  uint end = myproc()->lazyAllocs[i].addr + length;
 		  insertInOrder(address, myproc()->lazyAllocs[i].addr);
 		  insertInOrder(address, end);
 	  	  i++;
 	  	}
-	  	for(int j = 0; j < 17; j++) {
-	  		if(address[j * 2 + 1] - address[j * 2] >= length) {
-	  			myproc()->lazyAllocs[i].addr = address[j * 2] + 1;
+
+	  	
+	  	for(int k = 0; k < 17; k++) {
+	  		if(address[k * 2 + 1] - address[k * 2] >= length) {
+	  			myproc()->lazyAllocs[i].addr = address[k * 2] + 1;
 	  			myproc()->lazyAllocs[i].length = length;
 	  			myproc()->lazyAllocs[i].fd = (flags & MAP_ANONYMOUS) ? -1 : fd;
 	  			myproc()->lazyAllocs[i].shared = (flags & MAP_SHARED) ? 1 : 0;
+	  			myproc()->lazyAllocs[i].used = 1;
+	  			break;
+	  		}
+	  		if(k == 16) {
+	  			return -1;
 	  		}
 	  	}
 	  }

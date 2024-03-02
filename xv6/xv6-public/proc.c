@@ -112,7 +112,11 @@ found:
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
   for(int i = 0; i < 16; i++){
-  	p->lazyAllocs[i] = 0;
+  	p->lazyAllocs[i].fd = 0;
+  	p->lazyAllocs[i].addr = 0;
+  	p->lazyAllocs[i].length = 0;
+  	p->lazyAllocs[i].shared = 0;
+  	p->lazyAllocs[i].used = 0;
   }
 
   return p;
@@ -203,6 +207,14 @@ fork(void)
   np->parent = curproc;
   *np->tf = *curproc->tf;
 
+  for (int i = 0; i < 16; i++) {
+    if (curproc->lazyAllocs[i].used == 1 && !curproc->lazyAllocs[i].shared) {
+      char *mem = kalloc();  // Allocate a physical page.
+      mappages(np->pgdir, (void*)curproc->lazyAllocs[i].addr, PGSIZE, V2P(mem), PTE_W | PTE_U);
+    } else {
+    	
+    }
+  }
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
