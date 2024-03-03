@@ -1,14 +1,15 @@
-#include "types.h"
-#include "x86.h"
-#include "defs.h"
-#include "date.h"
 #include "param.h"
+#include "types.h"
+#include "defs.h"
+#include "x86.h"
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
-#include "types.h"
+#include "elf.h"
+#include "date.h"
 #include "wmap.h"
 #include "vm.h"
+#include "file.h"
 
 #define PAGE_SIZE 4096
 #define KERNBASE 536870912
@@ -100,16 +101,17 @@ uint
 wmap(void)
 {
   //decl args
-  uint addr;
+  int tAddr;
   int length; 
   int flags; 
   int fd;
 
-  argint(0, &addr);
+  argint(0, &tAddr);
   argint(1, &length);
   argint(2, &flags);
   argint(3, &fd);
 
+  uint addr = PGROUNDUP(tAddr);
   if(length <= 0) {
   	return -1;
   }
@@ -234,8 +236,9 @@ wmap(void)
 int 
 wunmap(void)
 {
-  uint addr;
-  argint(0, &addr);
+  int taddr;
+  argint(0, &taddr);
+  uint addr = (uint)taddr;  
 
   struct lazy* temp = myproc()->head;
   while(temp) {
@@ -253,19 +256,22 @@ wunmap(void)
   	  		myproc()->head = new;
   	  	}
   	  	pte_t *pte;
-	  	if(temp->fd == -1) {
-	  	  for(int i = 0; i < (temp->length / 4096); i++) {
-		  	  pte = walkpgdir(myproc()->pgdir, addr + (i * 4096), 0);
+	  	if(temp->fd == -1 || temp->shared == 0) {
+	  	  for(uint i = 0; i < temp->length; i += 4096) {
+		  	  pte = walkpgdir(myproc()->pgdir, (char *)addr+i, 0);
 		  	  kfree(P2V(PTE_ADDR(*pte)));
 		  }
 		  pte = 0;
 	  	} else {
+	  	  struct file *f = myproc()->ofile[temp->fd];
 	  	  for(int i = 0; i < (temp->length / 4096); i++) {
 	  	  	pte = walkpgdir(myproc()->pgdir, addr + (i * 4096), 0);
+	  	    f->off = addr;
+	  	  	char* buf = PTE_ADDR(*pte);
 	  	  	if(pte != 0) {
-	  	  		//write(fd);
+	  	  		filewrite(f, buf, 4096);
 	  	  	}
-	  	  	kfree(P2V(PTE_ADDR(*pte)));
+	  	  	kfree(P2V(buf));
 	  	  }
 	  	  	
   	  }
@@ -277,7 +283,7 @@ wunmap(void)
 uint
 wremap(void)
 {
-	
+  
 }
 
 int getpgdirinfo(void)

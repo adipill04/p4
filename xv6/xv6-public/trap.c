@@ -1,5 +1,4 @@
 #include "types.h"
-#include "types.h"
 #include "defs.h"
 #include "param.h"
 #include "memlayout.h"
@@ -9,7 +8,7 @@
 #include "traps.h"
 #include "spinlock.h"
 #include "vm.h"
-#include "user.h"
+#include "file.h"
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -91,13 +90,10 @@ trap(struct trapframe *tf)
       		char *mem = kalloc();
       		mappages(myproc()->pgdir, pageStart, 4096, V2P(mem), PTE_W | PTE_U);
       	} else {
-      		int fd = temp->fd;
+      		struct file *f = myproc()->ofile[temp->fd];
+      		f->off = PGROUNDUP(fault) - temp->addr;
       		char *mem = kalloc();
-      		int bytes = 0;
-      		while(bytes < pageStart) {
-      		  read(fd, mem, 4096);
-      		  bytes += 4096;
-      		}
+      		fileread(f, mem, 4096);
       		mappages(myproc()->pgdir, pageStart, 4096, V2P(mem), PTE_W | PTE_U);
       	}
       	break;
