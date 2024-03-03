@@ -201,18 +201,28 @@ fork(void)
     np->state = UNUSED;
     return -1;
   }
+
+
+  
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
+
+  //shallow copy from parent lazy struct to child 
+  np -> head = curproc -> head;
 
   for (int i = 0; i < 16; i++) {
     if (curproc->lazyAllocs[i].used == 1 && !curproc->lazyAllocs[i].shared) {
       char *mem = kalloc();  // Allocate a physical page.
       mappages(np->pgdir, (void*)curproc->lazyAllocs[i].addr, PGSIZE, V2P(mem), PTE_W | PTE_U);
-    } else {
-    	
     }
+    else{
+      pte_t *pte = walkpgdir(curproc -> pgdir, curproc -> head -> addr, 0);
+      char * addr1 = PTE_ADDR(*pte);
+      mappages(np->pgdir, (void*)curproc->lazyAllocs[i].addr, PGSIZE, V2P(addr1), PTE_W | PTE_U);
+    } 
   }
+
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
@@ -228,6 +238,7 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+
 
   release(&ptable.lock);
 
