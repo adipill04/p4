@@ -6,6 +6,8 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "user.h"
+#include "vm.h"
 
 struct {
   struct spinlock lock;
@@ -209,18 +211,21 @@ fork(void)
   *np->tf = *curproc->tf;
 
   //shallow copy from parent lazy struct to child 
-  np -> head = curproc -> head;
+  np->head = curproc->head;
 
-  for (int i = 0; i < 16; i++) {
-    if (curproc->lazyAllocs[i].used == 1 && !curproc->lazyAllocs[i].shared) {
+  struct lazy* temp = curproc->head;
+
+  while(temp) {
+    if (temp->used == 1 && !temp->shared) {
       char *mem = kalloc();  // Allocate a physical page.
-      mappages(np->pgdir, (void*)curproc->lazyAllocs[i].addr, PGSIZE, V2P(mem), PTE_W | PTE_U);
+      mappages(np->pgdir, (void*)tempaddr, PGSIZE, V2P(mem), PTE_W | PTE_U);
     }
     else{
       pte_t *pte = walkpgdir(curproc -> pgdir, curproc -> head -> addr, 0);
       char * addr1 = PTE_ADDR(*pte);
-      mappages(np->pgdir, (void*)curproc->lazyAllocs[i].addr, PGSIZE, V2P(addr1), PTE_W | PTE_U);
+      mappages(np->pgdir, (void*)temp->addr, PGSIZE, V2P(addr1), PTE_W | PTE_U);
     } 
+    temp = temp->next;
   }
 
   // Clear %eax so that fork returns 0 in the child.
