@@ -6,10 +6,8 @@
 #include "mmu.h"
 #include "proc.h"
 #include "elf.h"
-#include "date.h"
-#include "wmap.h"
 #include "vm.h"
-#include "file.h"
+#include "wmap.h"
 
 #define PAGE_SIZE 4096
 #define KERNBASE 536870912
@@ -238,7 +236,7 @@ wunmap(void)
 {
   int taddr;
   argint(0, &taddr);
-  uint addr = (uint)taddr;  
+  uint addr = (unsigned int)taddr;
 
   struct lazy* temp = myproc()->head;
   while(temp) {
@@ -264,8 +262,8 @@ wunmap(void)
 		  pte = 0;
 	  	} else {
 	  	  struct file *f = myproc()->ofile[temp->fd];
-	  	  for(int i = 0; i < (temp->length / 4096); i++) {
-	  	  	pte = walkpgdir(myproc()->pgdir, addr + (i * 4096), 0);
+	  	  for(int i = 0; i < temp->length; i += 4096) {
+	  	  	pte = walkpgdir(myproc()->pgdir, addr+i, 0);
 	  	    f->off = addr;
 	  	  	char* buf = PTE_ADDR(*pte);
 	  	  	if(pte != 0) {
@@ -283,7 +281,50 @@ wunmap(void)
 uint
 wremap(void)
 {
+  uint oldaddr;
+  int oldsize;
+  int newsize;
+  int flags;
+
+  argint(0, &oldaddr);
+  argint(1, &oldsize);
+  argint(2, &newsize);
+  argint(3, &flags);
   
+  struct lazy*temp = myproc()->head;
+  while(temp) {
+  	if(temp->addr == oldaddr) {
+  	  if(temp->length != oldsize) {
+  	  	return -1;
+  	  }
+  	  uint upper = (temp->next) ? temp->next->addr : KERNBASE;
+  	  if(oldaddr + newsize < upper) {
+  	  	temp->length = newsize;
+  	  	return 0;
+  	  } else if(flags & MREMAP_MAYMOVE) {
+  	    struct lazy* temp2 = myproc()->head;
+  	    int start = 0;
+  	    while(temp2) {
+  	      int end = temp2->addr;
+  	    	if(end - start > newsize) {
+  	    	  temp->addr = start;
+  	    	  temp->length = newsize;
+  	    	  return 0;
+  	    	}
+  	    	start = temp2->addr + temp2->length;
+  	    	temp2 = temp2->next;
+  	    }
+  	    if(KERNBASE - start > newsize) {
+  	    	temp->addr = start;
+  	    	temp->length = newsize;
+  	    	return 0;
+  	    }
+  	  }
+  	  break;
+  	}
+  	temp = temp->next;
+  }
+  return -1;
 }
 
 int getpgdirinfo(void)
