@@ -258,6 +258,14 @@ exit(void)
   if(curproc == initproc)
     panic("init exiting");
 
+
+  //call wunmap on all virtual addresses
+  struct lazy* temp = curproc->head;
+  while(temp){
+    wunmap(temp->addr);
+    temp = temp->next;
+  }
+
   // Close all open files.
   for(fd = 0; fd < NOFILE; fd++){
     if(curproc->ofile[fd]){
@@ -329,7 +337,6 @@ wait(void)
       release(&ptable.lock);
       return -1;
     }
-
     // Wait for children to exit.  (See wakeup1 call in proc_exit.)
     sleep(curproc, &ptable.lock);  //DOC: wait-sleep
   }
