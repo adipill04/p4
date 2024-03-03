@@ -85,6 +85,7 @@ trap(struct trapframe *tf)
     while(temp) {
       uint end = temp->addr + temp->length;
       if(fault >= temp->addr && fault <= end) {
+        temp->numPages += 1;
       	int pageStart = (fault / 4096) * 4096;
       	if(temp->fd == -1) {
       		char *mem = kalloc();

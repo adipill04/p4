@@ -329,10 +329,49 @@ wremap(void)
 
 int getpgdirinfo(void)
 {
-	
+
+  int addr;
+  struct pgdirinfo *pdinfo;
+
+  argint(0, &addr);
+  pdinfo = (pgdirinfo *)addr;
+  
+    struct proc *curproc = myproc();
+    pde_t *pgdir = curproc->pgdir;
+    int count = 0;
+
+    for (int i = 0; i < NPDENTRIES && count < MAX_UPAGE_INFO; i++) {
+        if (pgdir[i] & PTE_P) {  // Check if the page directory entry is present
+            pte_t *pgtab = (pte_t*)P2V(PTE_ADDR(pgdir[i]));
+            for (int j = 0; j < NPTENTRIES; j++) {
+                if (pgtab[j] & PTE_P && pgtab[j] & PTE_U) {  // Check if the page table entry is present and user-accessible
+                    // Assuming pdinfo->va and pdinfo->pa are arrays to store virtual and physical addresses
+                    pdinfo->va[count] = (void*)((i << PDXSHIFT) | (j << PTXSHIFT));
+                    pdinfo->pa[count] = P2V(PTE_ADDR(pgtab[j]));
+                    count++;
+                    if (count >= MAX_UPAGE_INFO) break;  // Stop if we've collected enough info
+                }
+            }
+        }
+    }
+ 
 }
 
 int getwmapinfo(void)
 {
-	
+  int addr;
+  struct wmapinfo *wminfo;
+
+  argint(0, &addr);
+  wminfo = (struct wmapinfo*)addr;
+  
+  int maps = 0;
+  struct lazy* temp = myproc()->head;
+  while(temp) {
+  	wminfo->addr[maps] = temp->addr;
+  	wminfo->length[maps] = temp->length;
+  	wminfo->n_loaded_pages[maps] = temp->numPages;
+  	maps++;
+  	wminfo->total_mmaps++;
+  }
 }

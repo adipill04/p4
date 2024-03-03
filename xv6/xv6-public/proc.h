@@ -41,6 +41,7 @@ struct lazy {                // Lazy allocation struct
   int length;
   int shared;                // shared bit (0 - not shared, 1 - shared)
   int used;
+  int numPages;
   struct lazy* next;
   struct lazy* prev;
 } lazy;
