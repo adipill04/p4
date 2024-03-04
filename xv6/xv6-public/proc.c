@@ -211,19 +211,18 @@ fork(void)
   //shallow copy from parent lazy struct to child 
   np->head = curproc->head;
 
-  struct lazy* temp = curproc->head;
 
-  while(temp) {
-    if (temp->used == 1 && !temp->shared) {
-      char *mem = kalloc();  // Allocate a physical page.
-      mappages(np->pgdir, (void*)temp->addr, PGSIZE, V2P(mem), PTE_W | PTE_U);
-    }
-    else{
-      pte_t *pte = walkpgdir(curproc -> pgdir, curproc -> head -> addr, 0);
-      char * addr1 = PTE_ADDR(*pte);
-      mappages(np->pgdir, (void*)temp->addr, PGSIZE, V2P(addr1), PTE_W | PTE_U);
-    } 
-    temp = temp->next;
+  for(uint i = 0; i < curproc->n_upages; i++) {
+  	struct lazy* temp = curproc->head;
+  	while(!(curproc->va[i] >= temp->addr && curproc->va[i] <= temp->addr + temp->length)) {
+  	  temp = temp->next;
+  	}
+  	if(!temp->shared) {
+  	  char *mem = kalloc();
+  	  mappages(np->pgdir, (char *)curproc->va[i], PGSIZE, V2P(mem), PTE_W | PTE_U);
+  	} else {
+  		mappages(np->pgdir, (char *)curproc->va[i], PGSIZE, curproc->pa[i], PTE_W | PTE_U);
+  	}	
   }
 
   // Clear %eax so that fork returns 0 in the child.
@@ -263,10 +262,14 @@ exit(void)
 
 
   //call wunmap on all virtual addresses
-  struct lazy* temp = curproc->head->next;
-  while(head){
-    
-    temp = temp->next;
+  struct lazy* temp = curproc->head;
+  struct lazy* head = curproc->head;
+  while(head) {
+  	temp = temp->next;
+  	for(int i = 0; i < head->length; i+= 4096) {
+	  	pte_t* pte = walkpgdir(myproc()->pgdir, (char *)head->addr+i, 0);
+	    kfree(P2V(PTE_ADDR(*pte)));
+	}
   }
 
   // Close all open files.

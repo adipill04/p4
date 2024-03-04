@@ -61,6 +61,10 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  uint n_upages;               // the number of allocated physical pages in the process's user address space
+  uint va[32]; 	   			   // the virtual addresses of the allocated physical pages in the process's user address space
+  uint pa[32];                 // the physical addresses of the allocated physical pages in the process's user address space
+
   
   struct lazy* head;  // All lazy allocations of a process (16 max)
 };

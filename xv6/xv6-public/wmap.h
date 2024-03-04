@@ -17,7 +17,7 @@
 struct pgdirinfo {
 	uint n_upages;			 // the number of allocated physical pages in the process's user address space
 	uint va[MAX_UPAGE_INFO]; // the virtual addresses of the allocated physical pages in the process's user address space
-	uint pa[32];			 // the physical addresses of the allocated physical pages in the process's user address space
+	uint pa[MAX_UPAGE_INFO]; // the physical addresses of the allocated physical pages in the process's user address space
 };
 
 // for `getwmapinfo`

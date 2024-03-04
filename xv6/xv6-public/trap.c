@@ -7,7 +7,6 @@
 #include "x86.h"
 #include "traps.h"
 #include "spinlock.h"
-#include "vm.h"
 #include "file.h"
 
 // Interrupt descriptor table (shared by all CPUs).
@@ -85,17 +84,19 @@ trap(struct trapframe *tf)
     while(temp) {
       uint end = temp->addr + temp->length;
       if(fault >= temp->addr && fault <= end) {
-        temp->numPages += 1;
-      	int pageStart = (fault / 4096) * 4096;
+        temp->numPages++;
+      	int pageStart = (fault / 4096) * 4096;      		
+      	char *mem = kalloc();
+      	myproc()->va[myproc()->n_upages++] = temp->addr;
+      	myproc()->pa[myproc()->n_upages - 1] = V2P(mem);
       	if(temp->fd == -1) {
-      		char *mem = kalloc();
       		mappages(myproc()->pgdir, pageStart, 4096, V2P(mem), PTE_W | PTE_U);
       	} else {
       		struct file *f = myproc()->ofile[temp->fd];
       		f->off = PGROUNDUP(fault) - temp->addr;
-      		char *mem = kalloc();
       		fileread(f, mem, 4096);
       		mappages(myproc()->pgdir, pageStart, 4096, V2P(mem), PTE_W | PTE_U);
+      		myproc()->pa[n_upages - 1];
       	}
       	break;
       }
