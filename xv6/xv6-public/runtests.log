@@ -16,6 +16,7 @@ objcopy -S -O binary -j .text bootblock.o bootblock
 ./sign.pl bootblock
 boot block is 451 bytes (max 510)
 gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector -fno-pie -no-pie   -c -o bio.o bio.c
+<<<<<<< HEAD
 gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector -fno-pie -no-pie   -c -o console.o console.c
 gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector -fno-pie -no-pie   -c -o exec.o exec.c
 gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector -fno-pie -no-pie   -c -o file.o file.c
@@ -56,8 +57,59 @@ proc.c:267:9: error: ‘head’ undeclared (first use in this function)
   267 |   while(head){
       |         ^~~~
 proc.c:267:9: note: each undeclared identifier is reported only once for each function it appears in
+=======
+In file included from bio.c:22:
+defs.h:189:1: error: unknown type name ‘pte_t’; did you mean ‘pde_t’?
+  189 | pte_t*                  walkpgdir(pde_t *pgdir, const void *va, int alloc)
+      | ^~~~~
+      | pde_t
+In file included from bio.c:24:
+spinlock.h: In function ‘walkpgdir’:
+spinlock.h:2:1: error: empty declaration [-Werror]
+    2 | struct spinlock {
+      | ^~~~~~
+In file included from bio.c:25:
+sleeplock.h:2:1: error: empty declaration [-Werror]
+    2 | struct sleeplock {
+      | ^~~~~~
+In file included from bio.c:26:
+fs.h:14:1: error: empty declaration [-Werror]
+   14 | struct superblock {
+      | ^~~~~~
+fs.h:29:1: error: empty declaration [-Werror]
+   29 | struct dinode {
+      | ^~~~~~
+fs.h:53:1: error: empty declaration [-Werror]
+   53 | struct dirent {
+      | ^~~~~~
+In file included from bio.c:27:
+buf.h:1:1: error: empty declaration [-Werror]
+    1 | struct buf {
+      | ^~~~~~
+bio.c:40:1: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘{’ token
+   40 | {
+      | ^
+bio.c:63:1: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘{’ token
+   63 | {
+      | ^
+bio.c:98:1: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘{’ token
+   98 | {
+      | ^
+bio.c:111:1: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘{’ token
+  111 | {
+      | ^
+bio.c:122:1: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘{’ token
+  122 | {
+      | ^
+In file included from bio.c:22:
+defs.h:189:25: error: old-style parameter declarations in prototyped function definition
+  189 | pte_t*                  walkpgdir(pde_t *pgdir, const void *va, int alloc)
+      |                         ^~~~~~~~~
+bio.c:145: error: expected ‘{’ at end of input
+bio.c:145: error: control reaches end of non-void function [-Werror=return-type]
+>>>>>>> refs/remotes/origin/main
 cc1: all warnings being treated as errors
-make: *** [<builtin>: proc.o] Error 1
+make: *** [<builtin>: bio.o] Error 1
 
 
 test build FAILED

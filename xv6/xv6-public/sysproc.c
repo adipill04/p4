@@ -8,7 +8,6 @@
 #include "elf.h"
 #include "date.h"
 #include "wmap.h"
-#include "vm.h"
 #include "file.h"
 
 #define PAGE_SIZE 4096
@@ -255,17 +254,17 @@ wunmap(void)
   	  		memset(new, 0, sizeof(struct lazy));
   	  		myproc()->head = new;
   	  	}
-  	  	pte_t *pte;
+  	  	uint *pte;
 	  	if(temp->fd == -1 || temp->shared == 0) {
-	  	  for(uint i = 0; i < temp->length; i += 4096) {
+	  	  for(int i = 0; i < temp->length; i += 4096) {
 		  	  pte = walkpgdir(myproc()->pgdir, (char *)addr+i, 0);
 		  	  kfree(P2V(PTE_ADDR(*pte)));
 		  }
 		  pte = 0;
 	  	} else {
 	  	  struct file *f = myproc()->ofile[temp->fd];
-	  	  for(int i = 0; i < (temp->length / 4096); i++) {
-	  	  	pte = walkpgdir(myproc()->pgdir, addr + (i * 4096), 0);
+	  	  for(int i = 0; i < temp->length; i++) {
+	  	  	pte = walkpgdir(myproc()->pgdir, (char *)addr+i, 0);
 	  	    f->off = addr;
 	  	  	char* buf = PTE_ADDR(*pte);
 	  	  	if(pte != 0) {
@@ -337,25 +336,12 @@ int getpgdirinfo(void)
   argint(0, &addr);
   pdinfo = (pgdirinfo *)addr;
   
-    struct proc *curproc = myproc();
-    pde_t *pgdir = curproc->pgdir;
-    int count = 0;
-
-    for (int i = 0; i < NPDENTRIES && count < MAX_UPAGE_INFO; i++) {
-        if (pgdir[i] & PTE_P) {  // Check if the page directory entry is present
-            pte_t *pgtab = (pte_t*)P2V(PTE_ADDR(pgdir[i]));
-            for (int j = 0; j < NPTENTRIES; j++) {
-                if (pgtab[j] & PTE_P && pgtab[j] & PTE_U) {  // Check if the page table entry is present and user-accessible
-                    // Assuming pdinfo->va and pdinfo->pa are arrays to store virtual and physical addresses
-                    pdinfo->va[count] = (void*)((i << PDXSHIFT) | (j << PTXSHIFT));
-                    pdinfo->pa[count] = P2V(PTE_ADDR(pgtab[j]));
-                    count++;
-                    if (count >= MAX_UPAGE_INFO) break;  // Stop if we've collected enough info
-                }
-            }
-        }
-    }
- 
+  struct proc *curproc = myproc();
+  pdinfo->n_upages = curproc->n_upages;
+  for(uint i = 0; i < curproc->n_upages; i++) {
+  	pdinfo->va[i] = curproc->va[i];
+  	pdinfo->pa[i] = curproc->pa[i];
+  }
 }
 
 int getwmapinfo(void)
