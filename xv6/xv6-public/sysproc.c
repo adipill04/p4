@@ -115,9 +115,7 @@ wmap(void)
   	return -1;
   }
 
-  if(length % 4096 != 0) {
-  	length += 4096 - (length % 4096);
-  }
+  PGROUNDUP(addr);
 
   struct lazy* temp = myproc()->head;
 
@@ -242,7 +240,7 @@ wunmap(void)
   struct lazy* temp = myproc()->head;
   while(temp) {
   	if(temp->addr == addr) {
-  	   if(temp->prev && temp->next) {
+  	   if(temp->prev && temp->next) { //UPDATES LAZY STRUCT
   	  	  temp->prev->next = temp->next;
   	  	  temp->next->prev = temp->prev;
   	  	} else if(temp->prev){
@@ -255,7 +253,7 @@ wunmap(void)
   	  		myproc()->head = new;
   	  	}
   	  	uint *pte;
-	  	if(temp->fd == -1 || temp->shared == 0) {
+	  	if(temp->fd == -1 || temp->shared == 0) { //UPDATES PTE'S (removes)
 	  	  for(int i = 0; i < temp->length; i += 4096) {
 		  	  pte = walkpgdir(myproc()->pgdir, (char *)addr+i, 0);
 		  	  kfree(P2V(PTE_ADDR(*pte)));
@@ -266,14 +264,15 @@ wunmap(void)
 	  	  for(int i = 0; i < temp->length; i++) {
 	  	  	pte = walkpgdir(myproc()->pgdir, (char *)addr+i, 0);
 	  	    f->off = addr;
-	  	  	char* buf = PTE_ADDR(*pte);
+	  	  	uint buf = PTE_ADDR(*pte);
 	  	  	if(pte != 0) {
-	  	  		filewrite(f, buf, 4096);
+	  	  		filewrite(f, (char *)buf, 4096);
 	  	  	}
-	  	  	kfree(P2V(buf));
+	  	  	kfree(P2V(buf)); 
 	  	  }
-	  	  	
-  	  }
+  	  } // NEED TO DO: UPDATE VA->PA mapping in proc struct, and make sure to free temp (node of lazy struct), because its no longer in use. Maybe using an array is actual
+  	  // better because then no need to free, just set to 0. Array size for lazy struct is 16, that is pre-defined. 
+  	// kfree(temp); SHOULD NEED SOMETHING LIKE THIS
   	}
   	temp = temp->next;
   }
@@ -294,12 +293,12 @@ wremap(void)
 
   struct lazy*temp = myproc()->head;
   while(temp) {
-  	if(temp->addr == oldaddr) {
+  	if(temp->addr == oldaddr) { // UPDATING LAZY STRUCT
   	  if(temp->length != oldsize) {
   	  	return -1;
   	  }
   	  uint upper = (temp->next) ? temp->next->addr : KERNBASE;
-  	  if(oldaddr + newsize < upper) {
+  	  if(oldaddr + newsize < upper) { 
   	  	temp->length = newsize;
   	  	return 0;
   	  } else if(flags & MREMAP_MAYMOVE) {
@@ -322,7 +321,7 @@ wremap(void)
   	    }
   	  }
   	  break;
-  	}
+  	} //NEED TO DO: UPDATE PTE's FOR VA->PA Mapping + UPDATE PROC VA->PA mapping
   	temp = temp->next;
   }
   return -1;

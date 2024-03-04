@@ -261,7 +261,7 @@ exit(void)
     panic("init exiting");
 
 
-  //call wunmap on all virtual addresses
+  // TO DO: GET RID OF PTE'S FOR OUR USER PROCESS: USE PROC STRUCT VA->PA MAPPINGS TO DO THIS
   struct lazy* temp = curproc->head;
   struct lazy* head = curproc->head;
   while(head) {
