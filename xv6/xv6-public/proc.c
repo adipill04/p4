@@ -6,8 +6,6 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-#include "user.h"
-#include "vm.h"
 
 struct {
   struct spinlock lock;
@@ -218,7 +216,7 @@ fork(void)
   while(temp) {
     if (temp->used == 1 && !temp->shared) {
       char *mem = kalloc();  // Allocate a physical page.
-      mappages(np->pgdir, (void*)tempaddr, PGSIZE, V2P(mem), PTE_W | PTE_U);
+      mappages(np->pgdir, (void*)temp->addr, PGSIZE, V2P(mem), PTE_W | PTE_U);
     }
     else{
       pte_t *pte = walkpgdir(curproc -> pgdir, curproc -> head -> addr, 0);
@@ -265,9 +263,9 @@ exit(void)
 
 
   //call wunmap on all virtual addresses
-  struct lazy* temp = curproc->head;
-  while(temp){
-    wunmap(temp->addr);
+  struct lazy* temp = curproc->head->next;
+  while(head){
+    
     temp = temp->next;
   }
 
