@@ -32,10 +32,18 @@ gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 
 gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector -fno-pie -no-pie   -c -o pipe.o pipe.c
 gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector -fno-pie -no-pie   -c -o proc.o proc.c
 proc.c: In function ‘fork’:
-proc.c:222:20: error: implicit declaration of function ‘walkpgdir’ [-Werror=implicit-function-declaration]
+proc.c:222:64: error: passing argument 2 of ‘walkpgdir’ makes pointer from integer without a cast [-Werror=int-conversion]
+  222 |       pte_t *pte = walkpgdir(curproc -> pgdir, curproc -> head -> addr, 0);
+      |                                                ~~~~~~~~~~~~~~~~^~~~~~~
+      |                                                                |
+      |                                                                uint {aka unsigned int}
+In file included from proc.c:2:
+defs.h:189:53: note: expected ‘const void *’ but argument is of type ‘uint’ {aka ‘unsigned int’}
+  189 | void            walkpgdir(pde_t *pgdir, const void *va, int alloc);
+      |                                         ~~~~~~~~~~~~^~
+proc.c:222:20: error: void value not ignored as it ought to be
   222 |       pte_t *pte = walkpgdir(curproc -> pgdir, curproc -> head -> addr, 0);
       |                    ^~~~~~~~~
-proc.c:222:20: error: initialization of ‘pte_t *’ {aka ‘unsigned int *’} from ‘int’ makes pointer from integer without a cast [-Werror=int-conversion]
 In file included from proc.c:5:
 mmu.h:100:25: error: initialization of ‘char *’ from ‘unsigned int’ makes pointer from integer without a cast [-Werror=int-conversion]
   100 | #define PTE_ADDR(pte)   ((uint)(pte) & ~0xFFF)
