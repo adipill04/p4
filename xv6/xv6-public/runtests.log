@@ -45,13 +45,6 @@ file.h:17:20: error: field ‘lock’ has incomplete type
 file.h:25:14: error: ‘NDIRECT’ undeclared here (not in a function)
    25 |   uint addrs[NDIRECT+1];
       |              ^~~~~~~
-sysproc.c:14: error: "KERNBASE" redefined [-Werror]
-   14 | #define KERNBASE 536870912
-      | 
-In file included from sysproc.c:5:
-memlayout.h:8: note: this is the location of the previous definition
-    8 | #define KERNBASE 0x80000000         // First kernel virtual address
-      | 
 In file included from sysproc.c:6:
 sysproc.c: In function ‘wmap’:
 mmu.h:90:41: error: statement with no effect [-Werror=unused-value]
@@ -60,47 +53,9 @@ mmu.h:90:41: error: statement with no effect [-Werror=unused-value]
 sysproc.c:112:9: note: in expansion of macro ‘PGROUNDUP’
   112 |         PGROUNDUP(addr);
       |         ^~~~~~~~~
-sysproc.c: In function ‘wunmap’:
-sysproc.c:334:31: error: passing argument 1 of ‘kfree’ from incompatible pointer type [-Werror=incompatible-pointer-types]
-  334 |                         kfree(temp);
-      |                               ^~~~
-      |                               |
-      |                               struct lazy *
-In file included from sysproc.c:3:
-defs.h:68:23: note: expected ‘char *’ but argument is of type ‘struct lazy *’
-   68 | void            kfree(char*);
-      |                       ^~~~~
-sysproc.c: In function ‘wremap’:
-sysproc.c:348:19: error: pointer targets in passing argument 2 of ‘argint’ differ in signedness [-Werror=pointer-sign]
-  348 |         argint(0, &oldaddr);
-      |                   ^~~~~~~~
-      |                   |
-      |                   uint * {aka unsigned int *}
-In file included from sysproc.c:3:
-defs.h:152:29: note: expected ‘int *’ but argument is of type ‘uint *’ {aka ‘unsigned int *’}
-  152 | int             argint(int, int*);
-      |                             ^~~~
-sysproc.c:399:93: error: passing argument 2 of ‘walkpgdir’ makes pointer from integer without a cast [-Werror=int-conversion]
-  399 |                                                 pte_t *pte = walkpgdir(myproc()->pgdir, temp->addr, 0); // update PTE
-      |                                                                                         ~~~~^~~~~~
-      |                                                                                             |
-      |                                                                                             uint {aka unsigned int}
-In file included from sysproc.c:3:
-defs.h:189:53: note: expected ‘const void *’ but argument is of type ‘uint’ {aka ‘unsigned int’}
-  189 | pte_t*          walkpgdir(pde_t *pgdir, const void *va, int alloc);
-      |                                         ~~~~~~~~~~~~^~
-sysproc.c:434:85: error: passing argument 2 of ‘walkpgdir’ makes pointer from integer without a cast [-Werror=int-conversion]
-  434 |                                         pte_t *pte = walkpgdir(myproc()->pgdir, temp->addr, 0); // update PTE
-      |                                                                                 ~~~~^~~~~~
-      |                                                                                     |
-      |                                                                                     uint {aka unsigned int}
-In file included from sysproc.c:3:
-defs.h:189:53: note: expected ‘const void *’ but argument is of type ‘uint’ {aka ‘unsigned int’}
-  189 | pte_t*          walkpgdir(pde_t *pgdir, const void *va, int alloc);
-      |                                         ~~~~~~~~~~~~^~
 sysproc.c: In function ‘getpgdirinfo’:
-sysproc.c:471:19: error: passing argument 2 of ‘argint’ from incompatible pointer type [-Werror=incompatible-pointer-types]
-  471 |         argint(0, &pdinfo);
+sysproc.c:474:19: error: passing argument 2 of ‘argint’ from incompatible pointer type [-Werror=incompatible-pointer-types]
+  474 |         argint(0, &pdinfo);
       |                   ^~~~~~~
       |                   |
       |                   struct pgdirinfo **

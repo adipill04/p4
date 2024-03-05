@@ -11,7 +11,7 @@
 #include "file.h"
 
 #define PAGE_SIZE 4096
-#define KERNBASE 536870912
+//#define KERNBASE 536870912
 
 int sys_fork(void)
 {
@@ -331,24 +331,30 @@ int wunmap(void)
 				}
 			}
 			// free temp
-			kfree(temp);
+			kfree((char*)temp);
 			return 0;
 		}
 		temp = temp->next;
 	}
+
+	//NOTE: confirm this return 0 is fine
+	return 0;
 }
 
 uint wremap(void)
 {
+	int tempoldaddr;
 	uint oldaddr;
 	int oldsize;
 	int newsize;
 	int flags;
 
-	argint(0, &oldaddr);
+	argint(0, &tempoldaddr);
 	argint(1, &oldsize);
 	argint(2, &newsize);
 	argint(3, &flags);
+
+	oldaddr = (uint)tempoldaddr;
 
 	// NEW: error checks:
 	if (newsize <= 0)
@@ -396,7 +402,7 @@ uint wremap(void)
 						// NEW: UPDATE PTE's FOR VA->PA Mapping + UPDATE PROC VA->PA mapping
 						// NOTE: any other check or error condition for the phys address obtained?
 						// NOTE: free old physical memory?
-						pte_t *pte = walkpgdir(myproc()->pgdir, temp->addr, 0); // update PTE
+						pte_t *pte = walkpgdir(myproc()->pgdir, (void*)temp->addr, 0); // update PTE
 						*pte = (V2P(temp->addr) & ~0xFFF) | flags;
 
 						uint oldpa;
@@ -431,7 +437,7 @@ uint wremap(void)
 					// NEW:
 					// NOTE: any other check or error condition for the phys address obtained?
 					// NOTE: free old physical memory?
-					pte_t *pte = walkpgdir(myproc()->pgdir, temp->addr, 0); // update PTE
+					pte_t *pte = walkpgdir(myproc()->pgdir, (void*)temp->addr, 0); // update PTE
 					*pte = (V2P(temp->addr) & ~0xFFF) | flags;
 
 					uint oldpa;
@@ -468,7 +474,7 @@ uint wremap(void)
 int getpgdirinfo(void)
 {
 	struct pgdirinfo *pdinfo;
-	argint(0, &pdinfo);
+	argptr(0, (void *)&pdinfo, sizeof(*pdinfo));
 
 	struct proc *curproc = myproc();
 	pdinfo->n_upages = curproc->n_upages;
