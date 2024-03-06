@@ -109,7 +109,8 @@ uint wmap(void)
 		return -1;
 	}
 
-	PGROUNDUP(addr);
+	//NEW: commented this line out
+	//PGROUNDUP(addr);
 
 	struct lazy *temp = myproc()->head;
 

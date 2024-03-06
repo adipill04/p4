@@ -45,29 +45,6 @@ file.h:17:20: error: field ‘lock’ has incomplete type
 file.h:25:14: error: ‘NDIRECT’ undeclared here (not in a function)
    25 |   uint addrs[NDIRECT+1];
       |              ^~~~~~~
-In file included from sysproc.c:6:
-sysproc.c: In function ‘wmap’:
-mmu.h:90:41: error: statement with no effect [-Werror=unused-value]
-   90 | #define PGROUNDUP(sz)  (((sz)+PGSIZE-1) & ~(PGSIZE-1))
-      |                        ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
-sysproc.c:112:9: note: in expansion of macro ‘PGROUNDUP’
-  112 |         PGROUNDUP(addr);
-      |         ^~~~~~~~~
-sysproc.c: In function ‘getpgdirinfo’:
-sysproc.c:474:19: error: passing argument 2 of ‘argint’ from incompatible pointer type [-Werror=incompatible-pointer-types]
-  474 |         argint(0, &pdinfo);
-      |                   ^~~~~~~
-      |                   |
-      |                   struct pgdirinfo **
-In file included from sysproc.c:3:
-defs.h:152:29: note: expected ‘int *’ but argument is of type ‘struct pgdirinfo **’
-  152 | int             argint(int, int*);
-      |                             ^~~~
-sysproc.c: In function ‘wunmap’:
-sysproc.c:339:1: error: control reaches end of non-void function [-Werror=return-type]
-  339 | }
-      | ^
-cc1: all warnings being treated as errors
 make: *** [<builtin>: sysproc.o] Error 1
 
 
@@ -77,5 +54,5 @@ test build FAILED
  required file 'xv6.img' does not exist after make
  required file 'fs.img' does not exist after make
 
-Skipped 36 tests.
+Skipped 3 tests.
 To keep testing after failing a test, use flag '-c' or '--continue'
