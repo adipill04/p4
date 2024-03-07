@@ -1,3 +1,6 @@
+#ifndef PROC_H
+#define PROC_H
+
 // Per-CPU state
 struct cpu {
   uchar apicid;                // Local APIC ID
@@ -44,7 +47,7 @@ struct lazy {                // Lazy allocation struct
   int numPages;
   struct lazy* next;
   struct lazy* prev;
-} lazy;
+}; //lazy
 
 // Per-process state
 struct proc {
@@ -74,3 +77,5 @@ struct proc {
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
+
+#endif // PROC_H

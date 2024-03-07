@@ -90,13 +90,15 @@ trap(struct trapframe *tf)
       	myproc()->va[myproc()->n_upages++] = temp->addr;
       	myproc()->pa[myproc()->n_upages - 1] = V2P(mem);
       	if(temp->fd == -1) {
-      		mappages(myproc()->pgdir, pageStart, 4096, V2P(mem), PTE_W | PTE_U);
+      		mappages(myproc()->pgdir, (void*)pageStart, 4096, V2P(mem), PTE_W | PTE_U);
       	} else {
       		struct file *f = myproc()->ofile[temp->fd];
       		f->off = PGROUNDUP(fault) - temp->addr;
       		fileread(f, mem, 4096);
-      		mappages(myproc()->pgdir, pageStart, 4096, V2P(mem), PTE_W | PTE_U);
-      		myproc()->pa[n_upages - 1];
+      		mappages(myproc()->pgdir, (void*)pageStart, 4096, V2P(mem), PTE_W | PTE_U);
+      		
+          //Not sure what this line was doing. Commented out due to error. check
+          //myproc()->pa[myproc() -> n_upages - 1];
       	}
       	break;
       }

@@ -90,7 +90,7 @@ int sys_uptime(void)
 	return xticks;
 }
 
-uint wmap(void)
+uint sys_wmap(void)
 {
 	// decl args
 	int tAddr;
@@ -251,7 +251,7 @@ uint wmap(void)
 	return -1;
 }
 
-int wunmap(void)
+int sys_wunmap(void)
 {
 	int taddr;
 	argint(0, &taddr);
@@ -313,21 +313,12 @@ int wunmap(void)
 			// NEW (check)
 			// NOTE: need to free address? (temp -> addr)
 			// updating mapping metadata in proc struct (va -> pa mappings).
-			uint pa;
 			for (int i = 0; i < 32; i++)
 			{
 				if (temp->addr == myproc()->va[i])
 				{
-					pa = V2P(myproc()->va[i]);
 					myproc()->va[i] = -1; // setting invalid va (removed)
-					for (int j = 0; j < 32; j++)
-					{
-						if (pa == myproc()->pa[j])
-						{
-							myproc()->pa[j] = -1; // setting invalid pa
-							break;
-						}
-					}
+					myproc() -> pa[i] = -1; //setting invalid pa (removed)
 					break;
 				}
 			}
@@ -342,7 +333,7 @@ int wunmap(void)
 	return 0;
 }
 
-uint wremap(void)
+uint sys_wremap(void)
 {
 	int tempoldaddr;
 	uint oldaddr;
@@ -406,23 +397,13 @@ uint wremap(void)
 						pte_t *pte = walkpgdir(myproc()->pgdir, (void*)temp->addr, 0); // update PTE
 						*pte = (V2P(temp->addr) & ~0xFFF) | flags;
 
-						uint oldpa;
 						for (int i = 0; i < 32; i++) // update proc VA->PA mapping
 						{
 							if (oldaddr == myproc()->va[i])
 							{
 								myproc()->va[i] = temp->addr; // updating va[i] with new va
-								oldpa = V2P(oldaddr);
-								for (int j = 0; j < 32; j++)
-								{
-									if (oldpa == myproc()->pa[j])
-									{
-										myproc()->pa[j] = PTE_ADDR(*pte); // updating pa[i] with new pa
-										break;
-									}
-								}
+								myproc()->pa[i] = PTE_ADDR(*pte); // updating pa[i] with new pa
 								break;
-							}
 						}
 
 						return 0;
@@ -441,21 +422,12 @@ uint wremap(void)
 					pte_t *pte = walkpgdir(myproc()->pgdir, (void*)temp->addr, 0); // update PTE
 					*pte = (V2P(temp->addr) & ~0xFFF) | flags;
 
-					uint oldpa;
 					for (int i = 0; i < 32; i++) // update proc VA->PA mapping
 					{
 						if (oldaddr == myproc()->va[i])
 						{
 							myproc()->va[i] = temp->addr; // updating va[i] with new va
-							oldpa = V2P(oldaddr);
-							for (int j = 0; j < 32; j++)
-							{
-								if (oldpa == myproc()->pa[j])
-								{
-									myproc()->pa[j] = PTE_ADDR(*pte); // updating pa[i] with new pa
-									break;
-								}
-							}
+							myproc()->pa[i] = PTE_ADDR(*pte); // updating pa[i] with new pa
 							break;
 						}
 					}
@@ -465,14 +437,15 @@ uint wremap(void)
 			}
 			break;
 		} 
-		temp = temp->next;
 	}
+	}
+	temp = temp->next;
 	return -1;
 }
 
 // NEW: fixed type casting
 // NOTE: add return -1 for failure case?
-int getpgdirinfo(void)
+int sys_getpgdirinfo(void)
 {
 	struct pgdirinfo *pdinfo;
 	argptr(0, (void *)&pdinfo, sizeof(*pdinfo));
@@ -489,7 +462,7 @@ int getpgdirinfo(void)
 
 // NEW (check): updated temp value each iteration, added return 0
 // NOTE: add return -1 for invalid address?
-int getwmapinfo(void)
+int sys_getwmapinfo(void)
 {
 	int addr;
 	struct wmapinfo *wminfo;
@@ -511,3 +484,4 @@ int getwmapinfo(void)
 	}
 	return 0;
 }
+
