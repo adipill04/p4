@@ -119,6 +119,7 @@ found:
   struct lazy *head = (struct lazy *)kalloc();
   memset(head, 0, sizeof(struct lazy));
   p->head = head;
+  p->tail = head;
 
   return p;
 }

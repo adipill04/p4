@@ -113,10 +113,10 @@ uint sys_wmap(void)
 	// PGROUNDUP(addr);
 
 	struct lazy *temp = myproc()->head;
+	struct lazy* tail = myproc()->tail;
 
 	// myproc() use to retrieve proc struct
-	if (flags & MAP_FIXED)
-	{
+
 		if (addr + length >= KERNBASE)
 		{
 			return -1;
@@ -130,7 +130,7 @@ uint sys_wmap(void)
 			temp->shared = (flags & MAP_SHARED) ? 1 : 0;
 			return addr;
 		}
-		uint last;
+		uint last = 0;
 		while (temp)
 		{
 			if (addr < temp->addr && (addr + length) < temp->addr)
@@ -153,17 +153,21 @@ uint sys_wmap(void)
 				{
 					temp->prev = new;
 				}
+				if(last == 0) {
+					myproc()->head = new;
+				}
 				return addr;
 			}
-			else if (addr < temp->addr && (addr + length) >= temp->addr)
+			else if (addr < temp->addr && (addr + length) >= temp->addr && (flags & MAP_FIXED))
 			{
 				return -1;
 			}
 			last = temp->addr + temp->length;
 			temp = temp->next;
 		}
-		if (addr < KERNBASE && last < addr)
+		if (addr < KERNBASE && last <= addr)
 		{
+			cprintf("address %d\n", addr);
 			struct lazy *new = (struct lazy *)kalloc();
 			memset(new, 0, sizeof(struct lazy));
 			new->addr = addr;
@@ -171,31 +175,15 @@ uint sys_wmap(void)
 			new->fd = (flags & MAP_ANONYMOUS) ? -1 : fd;
 			new->shared = (flags & MAP_SHARED) ? 1 : 0;
 			new->used = 1;
-			new->next = temp;
-			if (temp->prev)
-			{
-				new->prev = temp->prev;
-				temp->prev->next = new;
-				temp->prev = new;
-			}
-			else
-			{
-				temp->prev = new;
-			}
+			tail->next = new;
+			new->prev = tail;
+			myproc()->tail = new;
 			return addr;
 		}
-	}
-	else
+
+	temp = myproc()->head;
+	if(!(MAP_FIXED & flags))
 	{
-		if (temp->length == 0)
-		{
-			temp->used = 1;
-			temp->addr = 0;
-			temp->length = length;
-			temp->fd = (flags & MAP_ANONYMOUS) ? -1 : fd;
-			temp->shared = (flags & MAP_SHARED) ? 1 : 0;
-			return addr;
-		}
 		int start = 0;
 		while (temp)
 		{
@@ -220,6 +208,9 @@ uint sys_wmap(void)
 				{
 					temp->prev = new;
 				}
+				if(start == 0) {
+					myproc()->head = new;
+				}
 				return addr;
 			}
 			start = temp->addr + temp->length;
@@ -234,17 +225,9 @@ uint sys_wmap(void)
 			new->fd = (flags & MAP_ANONYMOUS) ? -1 : fd;
 			new->shared = (flags & MAP_SHARED) ? 1 : 0;
 			new->used = 1;
-			new->next = temp;
-			if (temp->prev)
-			{
-				new->prev = temp->prev;
-				temp->prev->next = new;
-				temp->prev = new;
-			}
-			else
-			{
-				temp->prev = new;
-			}
+			new->prev = tail;
+			tail->next = new;
+			myproc()->tail = new;
 			return addr;
 		}
 	}
@@ -520,6 +503,8 @@ int sys_getwmapinfo(void)
 	struct lazy *temp = myproc()->head;
 	while (temp && temp->used == 1)
 	{
+		cprintf("temp addr: %d, temp length: %d\n", temp->addr, temp->length);
+		cprintf("temp next exists? %s", temp->next ? "yes" : "no");
 		count++;
 		wminfo->addr[count-1] = temp->addr;
 		wminfo->length[count-1] = temp->length;

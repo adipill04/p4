@@ -70,6 +70,7 @@ struct proc {
 
   
   struct lazy* head;  // All lazy allocations of a process (16 max)
+  struct lazy* tail;
 };
 
 // Process memory is laid out contiguously, low addresses first:
