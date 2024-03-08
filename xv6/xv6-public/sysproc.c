@@ -11,7 +11,7 @@
 #include "file.h"
 
 #define PAGE_SIZE 4096
-//#define KERNBASE 536870912
+// #define KERNBASE 536870912
 
 int sys_fork(void)
 {
@@ -109,8 +109,8 @@ uint sys_wmap(void)
 		return -1;
 	}
 
-	//NEW: commented this line out
-	//PGROUNDUP(addr);
+	// NEW: commented this line out
+	// PGROUNDUP(addr);
 
 	struct lazy *temp = myproc()->head;
 
@@ -257,6 +257,11 @@ int sys_wunmap(void)
 	argint(0, &taddr);
 	uint addr = (uint)taddr;
 
+	// invalid addr check
+	if (taddr < 1610612736 || taddr > 2147483648)
+	{
+		return -1;
+	}
 	struct lazy *temp = myproc()->head;
 	while (temp)
 	{
@@ -317,20 +322,18 @@ int sys_wunmap(void)
 			{
 				if (temp->addr == myproc()->va[i])
 				{
-					myproc()->va[i] = -1; // setting invalid va (removed)
-					myproc() -> pa[i] = -1; //setting invalid pa (removed)
+					myproc()->va[i] = 0; // setting invalid va  prev: -1
+					myproc()->pa[i] = -1; // setting invalid pa (removed)
 					break;
 				}
 			}
 			// free temp
-			kfree((char*)temp);
+			kfree((char *)temp);
 			return 0;
 		}
 		temp = temp->next;
 	}
-
-	//NOTE: confirm this return 0 is fine
-	return 0;
+	return -1;
 }
 
 uint sys_wremap(void)
@@ -394,52 +397,52 @@ uint sys_wremap(void)
 						// NEW: UPDATE PTE's FOR VA->PA Mapping + UPDATE PROC VA->PA mapping
 						// NOTE: any other check or error condition for the phys address obtained?
 						// NOTE: free old physical memory?
-						pte_t *pte = walkpgdir(myproc()->pgdir, (void*)temp->addr, 0); // update PTE
+						pte_t *pte = walkpgdir(myproc()->pgdir, (void *)temp->addr, 0); // update PTE
 						*pte = (V2P(temp->addr) & ~0xFFF) | flags;
 
 						for (int i = 0; i < 32; i++) // update proc VA->PA mapping
 						{
 							if (oldaddr == myproc()->va[i])
 							{
-								myproc()->va[i] = temp->addr; // updating va[i] with new va
+								myproc()->va[i] = temp->addr;	  // updating va[i] with new va
 								myproc()->pa[i] = PTE_ADDR(*pte); // updating pa[i] with new pa
 								break;
+							}
+
+							return 0;
+						}
+						start = temp2->addr + temp2->length;
+						temp2 = temp2->next;
+					}
+					if (KERNBASE - start > newsize)
+					{
+						temp->addr = start;
+						temp->length = newsize;
+
+						// NEW:
+						// NOTE: any other check or error condition for the phys address obtained?
+						// NOTE: free old physical memory?
+						pte_t *pte = walkpgdir(myproc()->pgdir, (void *)temp->addr, 0); // update PTE
+						*pte = (V2P(temp->addr) & ~0xFFF) | flags;
+
+						for (int i = 0; i < 32; i++) // update proc VA->PA mapping
+						{
+							if (oldaddr == myproc()->va[i])
+							{
+								myproc()->va[i] = temp->addr;	  // updating va[i] with new va
+								myproc()->pa[i] = PTE_ADDR(*pte); // updating pa[i] with new pa
+								break;
+							}
 						}
 
 						return 0;
 					}
-					start = temp2->addr + temp2->length;
-					temp2 = temp2->next;
 				}
-				if (KERNBASE - start > newsize)
-				{
-					temp->addr = start;
-					temp->length = newsize;
-
-					// NEW:
-					// NOTE: any other check or error condition for the phys address obtained?
-					// NOTE: free old physical memory?
-					pte_t *pte = walkpgdir(myproc()->pgdir, (void*)temp->addr, 0); // update PTE
-					*pte = (V2P(temp->addr) & ~0xFFF) | flags;
-
-					for (int i = 0; i < 32; i++) // update proc VA->PA mapping
-					{
-						if (oldaddr == myproc()->va[i])
-						{
-							myproc()->va[i] = temp->addr; // updating va[i] with new va
-							myproc()->pa[i] = PTE_ADDR(*pte); // updating pa[i] with new pa
-							break;
-						}
-					}
-
-					return 0;
-				}
+				break;
 			}
-			break;
-		} 
+		}
+		temp = temp->next;
 	}
-	}
-	temp = temp->next;
 	return -1;
 }
 
@@ -451,13 +454,50 @@ int sys_getpgdirinfo(void)
 	argptr(0, (void *)&pdinfo, sizeof(*pdinfo));
 
 	struct proc *curproc = myproc();
-	pdinfo->n_upages = curproc->n_upages;
-	for (uint i = 0; i < curproc->n_upages; i++)
+	//pdinfo->n_upages = curproc->n_upages;
+
+
+	//NEW: logic for updating pdinfo struct
+	pde_t *pgdir = curproc->pgdir;
+	pte_t *pte;
+	int count = 0;
+
+	// setting n_upages by traversing page directory and table
+	for (int i = 0; i < NPDENTRIES; i++)
 	{
-		pdinfo->va[i] = curproc->va[i];
-		pdinfo->pa[i] = curproc->pa[i];
+		// if page table present
+		if (pgdir[i] & PTE_P)
+		{
+			// get pt address
+			pte_t *pgtab = (pte_t *)P2V(PTE_ADDR(pgdir[i]));
+
+			// traverse page table entries
+			for (int j = 0; j < NPTENTRIES; j++)
+			{
+				pte = &pgtab[j];
+
+				// if valid inc n_upages & update va and pa mappings
+				if (*pte & PTE_P && (*pte & PTE_U) && count < 32)
+				{
+					pdinfo -> va[count] = PGADDR(i, j, 0);
+					pdinfo -> pa[count] = PTE_ADDR(*pte);
+					count++;
+				}
+			}
+		}
 	}
-	return 0;
+
+	pdinfo -> n_upages = count;
+	curproc -> n_upages = count;
+
+	for (uint i = 0; i < pdinfo->n_upages; i++) //cuproc -> n_upages
+	{
+		curproc->va[i] = pdinfo -> va[i];
+		curproc->pa[i] = pdinfo -> pa[i];
+		// pdinfo->va[i] = curproc->va[i];
+		// pdinfo->pa[i] = curproc->pa[i];
+	}
+	return SUCCESS;
 }
 
 // NEW (check): updated temp value each iteration, added return 0
@@ -470,18 +510,22 @@ int sys_getwmapinfo(void)
 	argint(0, &addr);
 	wminfo = (struct wmapinfo *)addr;
 
-	int maps = 0;
+	wminfo -> total_mmaps = myproc() -> n_upages;
+	//int maps = 0;
+	int count = 0;
 	struct lazy *temp = myproc()->head;
 	while (temp)
 	{
-		wminfo->addr[maps] = temp->addr;
-		wminfo->length[maps] = temp->length;
+		// wminfo->addr[maps] = temp->addr;
+		// wminfo->length[maps] = temp->length;
+		// wminfo->n_loaded_pages[maps] = temp->numPages;
+		wminfo->addr[count] = temp->addr;
+		wminfo->length[count] = temp->length;
 		wminfo->n_loaded_pages[maps] = temp->numPages;
-		maps++;
-		wminfo->total_mmaps++;
+		//maps++;
+		//wminfo->total_mmaps++;
 
 		temp = temp->next;
 	}
 	return 0;
 }
-
