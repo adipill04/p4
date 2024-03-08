@@ -11,7 +11,6 @@
 #include "file.h"
 
 #define PAGE_SIZE 4096
-// #define KERNBASE 536870912
 
 int sys_fork(void)
 {
@@ -113,7 +112,9 @@ uint sys_wmap(void)
 	// PGROUNDUP(addr);
 
 	struct lazy *temp = myproc()->head;
-	struct lazy* tail = myproc()->tail;
+	struct lazy *tail = myproc()->tail;
+
+	cprintf("address: %d", addr);
 
 	// myproc() use to retrieve proc struct
 
@@ -128,6 +129,7 @@ uint sys_wmap(void)
 			temp->length = length;
 			temp->fd = (flags & MAP_ANONYMOUS) ? -1 : fd;
 			temp->shared = (flags & MAP_SHARED) ? 1 : 0;
+			myproc()->tail = temp;
 			return addr;
 		}
 		uint last = 0;
@@ -165,9 +167,9 @@ uint sys_wmap(void)
 			last = temp->addr + temp->length;
 			temp = temp->next;
 		}
+		cprintf("last: %d", last);
 		if (addr < KERNBASE && last <= addr)
 		{
-			cprintf("address %d\n", addr);
 			struct lazy *new = (struct lazy *)kalloc();
 			memset(new, 0, sizeof(struct lazy));
 			new->addr = addr;
@@ -184,10 +186,11 @@ uint sys_wmap(void)
 	temp = myproc()->head;
 	if(!(MAP_FIXED & flags))
 	{
-		int start = 0;
+		uint start = MMAPBASE;
 		while (temp)
 		{
-			int end = temp->addr;
+			uint end = temp->addr;
+			cprintf("do we enter here\n");
 			if (end - start > length)
 			{
 				struct lazy *new = (struct lazy *)kalloc();
@@ -216,8 +219,10 @@ uint sys_wmap(void)
 			start = temp->addr + temp->length;
 			temp = temp->next;
 		}
+		cprintf("Here?");
 		if (KERNBASE - start > length)
 		{
+			cprintf("Enters here?\n");
 			struct lazy *new = (struct lazy *)kalloc();
 			memset(new, 0, sizeof(struct lazy));
 			new->addr = start;
@@ -368,7 +373,7 @@ uint sys_wremap(void)
 				struct lazy *temp2 = myproc()->head;
 
 				// NOTE: don't think this is correct logic using start=0
-				int start = 0;
+				int start = MMAPBASE;
 				while (temp2)
 				{
 					if(temp2->addr == oldaddr) {
@@ -503,8 +508,6 @@ int sys_getwmapinfo(void)
 	struct lazy *temp = myproc()->head;
 	while (temp && temp->used == 1)
 	{
-		cprintf("temp addr: %d, temp length: %d\n", temp->addr, temp->length);
-		cprintf("temp next exists? %s", temp->next ? "yes" : "no");
 		count++;
 		wminfo->addr[count-1] = temp->addr;
 		wminfo->length[count-1] = temp->length;
