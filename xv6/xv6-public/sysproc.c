@@ -128,7 +128,7 @@ uint sys_wmap(void)
 			temp->length = length;
 			temp->fd = (flags & MAP_ANONYMOUS) ? -1 : fd;
 			temp->shared = (flags & MAP_SHARED) ? 1 : 0;
-			return 0;
+			return addr;
 		}
 		uint last;
 		while (temp)
@@ -153,7 +153,7 @@ uint sys_wmap(void)
 				{
 					temp->prev = new;
 				}
-				return 0;
+				return addr;
 			}
 			else if (addr < temp->addr && (addr + length) >= temp->addr)
 			{
@@ -182,7 +182,7 @@ uint sys_wmap(void)
 			{
 				temp->prev = new;
 			}
-			return 0;
+			return addr;
 		}
 	}
 	else
@@ -194,7 +194,7 @@ uint sys_wmap(void)
 			temp->length = length;
 			temp->fd = (flags & MAP_ANONYMOUS) ? -1 : fd;
 			temp->shared = (flags & MAP_SHARED) ? 1 : 0;
-			return 0;
+			return addr;
 		}
 		int start = 0;
 		while (temp)
@@ -220,7 +220,7 @@ uint sys_wmap(void)
 				{
 					temp->prev = new;
 				}
-				return 0;
+				return addr;
 			}
 			start = temp->addr + temp->length;
 			temp = temp->next;
@@ -245,7 +245,7 @@ uint sys_wmap(void)
 			{
 				temp->prev = new;
 			}
-			return 0;
+			return addr;
 		}
 	}
 	return -1;
@@ -378,7 +378,7 @@ uint sys_wremap(void)
 				// NEW:
 				// NOTE: update PTE? proc VA->PA mapping? numPages(lazy struct)? sz(proc struct)?
 
-				return 0;
+				return oldaddr;
 			}
 			else if (flags & MREMAP_MAYMOVE)
 			{
@@ -388,6 +388,10 @@ uint sys_wremap(void)
 				int start = 0;
 				while (temp2)
 				{
+					if(temp2->addr == oldaddr) {
+						temp2 = temp2->next;
+						continue;
+					}
 					int end = temp2->addr;
 					if (end - start > newsize)
 					{
@@ -511,19 +515,16 @@ int sys_getwmapinfo(void)
 	wminfo = (struct wmapinfo *)addr;
 
 	wminfo -> total_mmaps = myproc() -> n_upages;
-	//int maps = 0;
+	
 	int count = 0;
 	struct lazy *temp = myproc()->head;
-	while (temp)
+	while (temp && temp->used == 1)
 	{
-		// wminfo->addr[maps] = temp->addr;
-		// wminfo->length[maps] = temp->length;
-		// wminfo->n_loaded_pages[maps] = temp->numPages;
-		wminfo->addr[count] = temp->addr;
-		wminfo->length[count] = temp->length;
-		wminfo->n_loaded_pages[maps] = temp->numPages;
-		//maps++;
-		//wminfo->total_mmaps++;
+		count++;
+		wminfo->addr[count-1] = temp->addr;
+		wminfo->length[count-1] = temp->length;
+		wminfo->n_loaded_pages[count-1] = temp->numPages;
+		wminfo->total_mmaps++;
 
 		temp = temp->next;
 	}
