@@ -268,29 +268,31 @@ int sys_wunmap(void)
 				memset(new, 0, sizeof(struct lazy));
 				myproc()->head = new;
 			}
-			uint *pte;
 			if (temp->fd == -1 || temp->shared == 0)
 			{ // UPDATES PTE'S (removes)
 				for (int i = 0; i < temp->length; i += 4096)
 				{
-					pte = walkpgdir(myproc()->pgdir, (char *)addr + i, 0);
-					kfree(P2V(PTE_ADDR(*pte)));
+					pte_t *pte = walkpgdir(myproc()->pgdir, (char *)addr + i, 0);
+					if(*pte & PTE_P){
+						kfree(P2V(PTE_ADDR(*pte)));
+						*pte = 0;
+					}				
 				}
-				pte = 0;
 			}
 			else
 			{
 				struct file *f = myproc()->ofile[temp->fd];
-				for (int i = 0; i < temp->length; i++)
+				for (int i = 0; i < temp->length; i += 4096)
 				{
-					pte = walkpgdir(myproc()->pgdir, (char *)addr + i, 0);
-					f->off = addr;
-					uint buf = PTE_ADDR(*pte);
-					if (pte != 0)
+					pte_t *pte = walkpgdir(myproc()->pgdir, (char *)addr + i, 0);
+					if (*pte & PTE_P)
 					{
+						char* buf = P2V(PTE_ADDR(*pte));
+						f->off = i;
 						filewrite(f, (char *)buf, 4096);
+						kfree(buf);
+						*pte = 0;
 					}
-					kfree(P2V(buf));
 				}
 			}
 			// NEED TO DO: UPDATE VA->PA mapping in proc struct, and make sure to free temp (node of lazy struct), because its no longer in use. Maybe using an array is actual
@@ -300,15 +302,19 @@ int sys_wunmap(void)
 			// NEW (check)
 			// NOTE: need to free address? (temp -> addr)
 			// updating mapping metadata in proc struct (va -> pa mappings).
+			int removecount = 1;
 			for (int i = 0; i < myproc()->n_upages; i++)
 			{
 				if (temp->addr == myproc()->va[i])
 				{
-					myproc()->va[i] = 0; // setting invalid va  prev: -1
-					myproc()->pa[i] = -1; // setting invalid pa (removed)
-					break;
+					myproc()->va[i] = myproc()->va[myproc()->n_upages - removecount];
+					myproc()->pa[i] = myproc()->pa[myproc()->n_upages - removecount];
+					myproc()->va[myproc()->n_upages - removecount] = -1;
+					myproc()->pa[myproc()->n_upages - removecount] = -1;
+					removecount++;
 				}
 			}
+			myproc()->n_upages -= removecount + 1;
 			// free temp
 			kfree((char *)temp);
 			return 0;
@@ -474,15 +480,7 @@ int sys_getpgdirinfo(void)
 	}
 
 	pdinfo -> n_upages = count;
-	curproc -> n_upages = count;
 
-	for (uint i = 0; i < pdinfo->n_upages; i++) //cuproc -> n_upages
-	{
-		curproc->va[i] = pdinfo -> va[i];
-		curproc->pa[i] = pdinfo -> pa[i];
-		// pdinfo->va[i] = curproc->va[i];
-		// pdinfo->pa[i] = curproc->pa[i];
-	}
 	return SUCCESS;
 }
 

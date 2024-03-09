@@ -276,6 +276,7 @@ void exit(void)
       pte_t *pte = walkpgdir(myproc()->pgdir, (char *)head->addr + i, 0);
       kfree(P2V(PTE_ADDR(*pte)));
     }
+    head = temp;
   }
 
   // Close all open files.
