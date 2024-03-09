@@ -114,10 +114,8 @@ uint sys_wmap(void)
 	struct lazy *temp = myproc()->head;
 	struct lazy *tail = myproc()->tail;
 
-	cprintf("address: %d", addr);
-
 	// myproc() use to retrieve proc struct
-
+	if(addr >= MMAPBASE){
 		if (addr + length >= KERNBASE)
 		{
 			return -1;
@@ -167,7 +165,6 @@ uint sys_wmap(void)
 			last = temp->addr + temp->length;
 			temp = temp->next;
 		}
-		cprintf("last: %d", last);
 		if (addr < KERNBASE && last <= addr)
 		{
 			struct lazy *new = (struct lazy *)kalloc();
@@ -182,7 +179,7 @@ uint sys_wmap(void)
 			myproc()->tail = new;
 			return addr;
 		}
-
+	}
 	temp = myproc()->head;
 	if(!(MAP_FIXED & flags))
 	{
@@ -190,7 +187,6 @@ uint sys_wmap(void)
 		while (temp)
 		{
 			uint end = temp->addr;
-			cprintf("do we enter here\n");
 			if (end - start > length)
 			{
 				struct lazy *new = (struct lazy *)kalloc();
@@ -211,18 +207,16 @@ uint sys_wmap(void)
 				{
 					temp->prev = new;
 				}
-				if(start == 0) {
+				if(start == MMAPBASE) {
 					myproc()->head = new;
 				}
-				return addr;
+				return start;
 			}
 			start = temp->addr + temp->length;
 			temp = temp->next;
 		}
-		cprintf("Here?");
 		if (KERNBASE - start > length)
 		{
-			cprintf("Enters here?\n");
 			struct lazy *new = (struct lazy *)kalloc();
 			memset(new, 0, sizeof(struct lazy));
 			new->addr = start;
@@ -233,7 +227,7 @@ uint sys_wmap(void)
 			new->prev = tail;
 			tail->next = new;
 			myproc()->tail = new;
-			return addr;
+			return start;
 		}
 	}
 	return -1;
@@ -306,7 +300,7 @@ int sys_wunmap(void)
 			// NEW (check)
 			// NOTE: need to free address? (temp -> addr)
 			// updating mapping metadata in proc struct (va -> pa mappings).
-			for (int i = 0; i < 32; i++)
+			for (int i = 0; i < myproc()->n_upages; i++)
 			{
 				if (temp->addr == myproc()->va[i])
 				{
@@ -373,7 +367,7 @@ uint sys_wremap(void)
 				struct lazy *temp2 = myproc()->head;
 
 				// NOTE: don't think this is correct logic using start=0
-				int start = MMAPBASE;
+				int start = 0;
 				while (temp2)
 				{
 					if(temp2->addr == oldaddr) {
@@ -501,8 +495,6 @@ int sys_getwmapinfo(void)
 
 	argint(0, &addr);
 	wminfo = (struct wmapinfo *)addr;
-
-	wminfo -> total_mmaps = myproc() -> n_upages;
 	
 	int count = 0;
 	struct lazy *temp = myproc()->head;
