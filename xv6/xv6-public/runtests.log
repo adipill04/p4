@@ -59,15 +59,15 @@ objdump -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$/d' > kernel.sym
 dd if=/dev/zero of=xv6.img count=10000
 10000+0 records in
 10000+0 records out
-5120000 bytes (5.1 MB, 4.9 MiB) copied, 0.0094794 s, 540 MB/s
+5120000 bytes (5.1 MB, 4.9 MiB) copied, 0.010837 s, 472 MB/s
 dd if=bootblock of=xv6.img conv=notrunc
 1+0 records in
 1+0 records out
-512 bytes copied, 4.7101e-05 s, 10.9 MB/s
+512 bytes copied, 4.3106e-05 s, 11.9 MB/s
 dd if=kernel of=xv6.img seek=1 conv=notrunc
 430+1 records in
 430+1 records out
-220424 bytes (220 kB, 215 KiB) copied, 0.000292915 s, 753 MB/s
+220424 bytes (220 kB, 215 KiB) copied, 0.000300185 s, 734 MB/s
 gcc -Werror -Wall -o mkfs mkfs.c
 gcc -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer -fno-stack-protector -fno-pie -no-pie   -c -o ulib.o ulib.c
 gcc -m32 -gdwarf-2 -Wa,-divide   -c -o usys.o usys.S
@@ -152,11 +152,11 @@ Checks the presence of all system calls
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/1_starter_tests/test_1.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -206,11 +206,11 @@ Validates the output of `getpgdirinfo()` before placing any mmap.
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/1_starter_tests/test_2.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -255,11 +255,11 @@ Validates the output of `getwmapinfo()` before placing any mmap.
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/1_starter_tests/test_3.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -293,6 +293,7 @@ Initially 0 maps. 	Okay.
 WMMAP	 SUCCESS
 
 
+
 test test_3 PASSED (1 of 1)
  (Validates the output of `getwmapinfo()` before placing any mmap.)
 
@@ -305,11 +306,11 @@ Places one anonymous map at a fixed address.
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/2_wmap_tests/test_4.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -343,8 +344,6 @@ Map 1 at 0x60021000 with length 4104. 	Okay.
 
 WMMAP	 SUCCESS
 
-
-
 test test_4 PASSED (1 of 1)
  (Places one anonymous map at a fixed address.)
 
@@ -357,11 +356,11 @@ Places one anonymous map at a NOT-fixed address.
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/2_wmap_tests/test_5.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -395,6 +394,8 @@ Map 1 at 0x60021000 with length 4104. 	Okay.
 
 WMMAP	 SUCCESS
 
+
+
 test test_5 PASSED (1 of 1)
  (Places one anonymous map at a NOT-fixed address.)
 
@@ -407,11 +408,11 @@ Places one filebacked map at a fixed address.
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/2_wmap_tests/test_6.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -458,11 +459,11 @@ Places multiple maps at different addresses.
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/2_wmap_tests/test_7.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -513,11 +514,11 @@ Places a large number of anonymous maps at fixed and non-fixed addresses
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/2_wmap_tests/test_8.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -576,11 +577,11 @@ access anonymous map (checks for memory allocation)
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/2_wmap_tests/test_9.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -629,11 +630,11 @@ access one big filebacked map (checks for memory allocation)
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/2_wmap_tests/test_10.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -669,8 +670,6 @@ Accessed all pages of Map 1. 	Okay.
 
 WMMAP	 SUCCESS
 
-
-
 test test_10 PASSED (1 of 1)
  (access one big filebacked map (checks for memory allocation))
 
@@ -683,11 +682,11 @@ Places a large number of anonymous maps at fixed and non-fixed addresses and the
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/2_wmap_tests/test_11.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -754,11 +753,11 @@ Checks for lazy allocation in fixed anon mapping
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/2_wmap_tests/test_12.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -810,11 +809,11 @@ Checks for lazy allocation in fixed filebacked mapping
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/2_wmap_tests/test_13.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -870,11 +869,11 @@ Places one anonymous map at a fixed address and unmaps it.
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/3_wunmap_tests/test_14.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -909,7 +908,6 @@ Map 1 unmapped. 	Okay.
 
 WMMAP	 SUCCESS
 
-
 test test_14 PASSED (1 of 1)
  (Places one anonymous map at a fixed address and unmaps it.)
 
@@ -922,11 +920,11 @@ Places one anonymous map at a NOT-fixed address and unmaps it.
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/3_wunmap_tests/test_15.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -961,6 +959,7 @@ Map 1 unmapped. 	Okay.
 
 WMMAP	 SUCCESS
 
+
 test test_15 PASSED (1 of 1)
  (Places one anonymous map at a NOT-fixed address and unmaps it.)
 
@@ -973,11 +972,11 @@ Places one filebacked map at a fixed address and unmaps it.
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/3_wunmap_tests/test_16.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -1012,7 +1011,6 @@ Map 1 unmapped. 	Okay.
 
 WMMAP	 SUCCESS
 
-
 test test_16 PASSED (1 of 1)
  (Places one filebacked map at a fixed address and unmaps it.)
 
@@ -1025,11 +1023,11 @@ access anonymous map and unmap it
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/3_wunmap_tests/test_17.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -1078,11 +1076,11 @@ access one big filebacked map (checks for memory allocation)
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/3_wunmap_tests/test_18.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -1132,11 +1130,11 @@ change one small private filebacked map (checks for memory allocation)
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/3_wunmap_tests/test_19.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -1188,11 +1186,11 @@ change one big shared filebacked map (checks for memory allocation)
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/3_wunmap_tests/test_20.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -1229,8 +1227,6 @@ File content is as expected. 	Okay.
 
 WMMAP	 SUCCESS
 
-
-
 test test_20 PASSED (1 of 1)
  (change one big shared filebacked map (checks for memory allocation))
 
@@ -1243,11 +1239,11 @@ Validates mmaps exists in the mmap list in both parent and child for anonymous p
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/4_fork_tests/test_21.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
@@ -1285,7 +1281,6 @@ Map 1 and 2 exist in the parent process. 	Okay
 WMMAP	 SUCCESS
 
 
-
 test test_21 PASSED (1 of 1)
  (Validates mmaps exists in the mmap list in both parent and child for anonymous private and shared mappings with fork)
 
@@ -1298,11 +1293,11 @@ Validates parent can NOT see child's change for anonymous private mappings with 
 
 **********************************************************************
 Running xv6 user progam /home/cs537-1/tests/P4/4_fork_tests/test_22.c
-DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpsr78ovjz/p/Makefile', '/tmp/tmpsr78ovjz/p/Makefile.test']
+DEBUG: cmd = ['/home/cs537-1/tests/P4/edit-makefile.sh', '/tmp/tmpjocf8h1m/p/Makefile', '/tmp/tmpjocf8h1m/p/Makefile.test']
 Trying to build project using make
 make xv6.img fs.img
-/tmp/tmpsr78ovjz/p/Makefile
-/tmp/tmpsr78ovjz/p/Makefile.test
+/tmp/tmpjocf8h1m/p/Makefile
+/tmp/tmpjocf8h1m/p/Makefile.test
 make: 'xv6.img' is up to date.
 make: 'fs.img' is up to date.
 make qemu-nox CPUS=1
