@@ -200,7 +200,7 @@ int fork(void)
   }
 
   // Copy process state from proc.
-  if ((np->pgdir = copyuvm(curproc->pgdir, curproc->sz)) == 0)
+  if ((np->pgdir = forkuvm(curproc->pgdir, curproc->sz)) == 0)
   {
     kfree(np->kstack);
     np->kstack = 0;
@@ -208,30 +208,20 @@ int fork(void)
     return -1;
   }
 
+  memmove(np->head, curproc->head, sizeof(struct lazy));
+  
+  struct lazy* temp = curproc->head->next;
+  struct lazy* child = np->head;
+  while(temp) {
+    memmove(child->next, temp, sizeof(struct lazy));
+    child = child->next;
+    temp = temp->next;
+  }
+
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
 
-  // shallow copy from parent lazy struct to child
-  np->head = curproc->head;
-
-  for (uint i = 0; i < curproc->n_upages; i++)
-  {
-    struct lazy *temp = curproc->head;
-    while (!(curproc->va[i] >= temp->addr && curproc->va[i] <= temp->addr + temp->length))
-    {
-      temp = temp->next;
-    }
-    if (!temp->shared)
-    {
-      char *mem = kalloc();
-      mappages(np->pgdir, (char *)curproc->va[i], PGSIZE, V2P(mem), PTE_W | PTE_U);
-    }
-    else
-    {
-      mappages(np->pgdir, (char *)curproc->va[i], PGSIZE, curproc->pa[i], PTE_W | PTE_U);
-    }
-  }
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;

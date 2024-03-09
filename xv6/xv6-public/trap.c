@@ -37,6 +37,7 @@ idtinit(void)
 void
 trap(struct trapframe *tf)
 {
+
   if(tf->trapno == T_SYSCALL){
     if(myproc()->killed)
       exit();
@@ -79,34 +80,59 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
   case T_PGFLT:
-    struct lazy* temp = myproc()->head;
-    uint fault = rcr2();
-    fault = PGROUNDDOWN(fault);
-    int found = 0;
-    while(temp) {
-      uint end = temp->addr + temp->length - 1;
-      if(fault >= temp->addr && fault <= end) {
-      	found = 1;
-        temp->numPages++;
-      	char *mem = kalloc();
-       	memset(mem, 0, PGSIZE);
-      	myproc()->va[myproc()->n_upages++] = temp->addr;
-      	myproc()->pa[myproc()->n_upages - 1] = V2P(mem);
-      	if(temp->fd == -1) {
-      		mappages(myproc()->pgdir, (char*)fault, PGSIZE, V2P(mem), PTE_W | PTE_U);
-      	} else {
-      		struct file *f = myproc()->ofile[temp->fd];
-      		f->off = fault - temp->addr;
-      		fileread(f, mem, PGSIZE);
-      		mappages(myproc()->pgdir, (char*)fault, PGSIZE, V2P(mem), PTE_W | PTE_U);
-      	}
-      	break;
-      }
-      temp = temp->next;
-	}
-   	if(found == 0) {
-	  cprintf("Segmentation Fault\n");
-	  exit();
+  	if(tf->err & 1){
+  		struct lazy* temp = myproc()->head;
+  		uint fault = rcr2();
+  		fault = PGROUNDDOWN(fault);
+  		while(temp) {
+  			uint end = temp->addr + temp->length - 1;
+  			if(fault >= temp->addr && fault <= end) {
+  				pte_t *pte = walkpgdir(myproc()->pgdir, (char *)fault, 0);
+  				uint flags = PTE_FLAGS(*pte);
+  				flags |= PTE_W;
+  				char* buf = P2V(PTE_ADDR(*pte));
+  				if(temp->shared == 0) {
+  					char *mem = kalloc();
+  					memmove(mem, buf, PGSIZE);
+  					*pte = V2P(mem) | flags;
+  					lcr3(V2P(myproc()->pgdir));
+  				} else {
+  					*pte = PTE_ADDR(*pte) | flags;
+  					lcr3(V2P(myproc()->pgdir));
+  				}
+  			}
+  			temp = temp->next;
+  		}
+  	} else {
+	    struct lazy* temp = myproc()->head;
+	    uint fault = rcr2();
+	    fault = PGROUNDDOWN(fault);
+	    int found = 0;
+	    while(temp) {
+	      uint end = temp->addr + temp->length - 1;
+	      if(fault >= temp->addr && fault <= end) {
+	      	found = 1;
+	        temp->numPages++;
+	      	char *mem = kalloc();
+	       	memset(mem, 0, PGSIZE);
+	      	myproc()->va[myproc()->n_upages++] = temp->addr;
+	      	myproc()->pa[myproc()->n_upages - 1] = V2P(mem);
+	      	if(temp->fd == -1) {
+	      		mappages(myproc()->pgdir, (char*)fault, PGSIZE, V2P(mem), PTE_W | PTE_U);
+	      	} else {
+	      		struct file *f = myproc()->ofile[temp->fd];
+	      		f->off = fault - temp->addr;
+	      		fileread(f, mem, PGSIZE);
+	      		mappages(myproc()->pgdir, (char*)fault, PGSIZE, V2P(mem), PTE_W | PTE_U);
+	      	}
+	      	break;
+	      }
+	      temp = temp->next;
+		}
+	   	if(found == 0) {
+		  cprintf("Segmentation Fault\n");
+		  exit();
+		}
 	}
 	break;
 
